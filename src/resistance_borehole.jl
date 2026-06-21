@@ -18,9 +18,9 @@ Note: To obtain only the grout thermal resistance, set `Rp` and `Rf` as 0.0.
     - `kg`: Grout thermal conductivity [W/mK]
     - `kp`: Pipe thermal conductivity [W/mK]
     - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cf(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_rho(T)`)
-    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_mu(T)`)
+    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
+    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
+    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_μ(T)`)
     - `ϵ`: Pipe roughness [m] (default 0.0)
     - `Rp`: Pipe thermal resistance [mK/W]
     - `Rf`: Fluid thermal resistance [mK/W]
@@ -39,8 +39,8 @@ Note: To obtain only the grout thermal resistance, set `Rp` and `Rf` as 0.0.
         Technology for the Built Environment, 25(8), 980–992.
         https://doi.org/10.1080/23744731.2019.1620565
 """
-function resistance_borehole_multipole(s::Real, rb::Real, ro::Real, ks::Real, kg::Real, 
-    Rp::Real, Rf::Real, nLoop::Int=1, order::Int=1)
+function resistance_borehole_multipole(s::Real, rb::Real, ro::Real, ks::Real, kg::Real,
+    Rp::Real, Rf::Real; nLoop::Int=1, order::Int=1)
     # Initial parameters
     Rₚ = Rp + Rf                                    # Pipe and fluid resistance
     β = 2 * π * kg * Rₚ                             # β parameter for the multipole method
@@ -89,14 +89,14 @@ function resistance_borehole_multipole(s::Real, rb::Real, ro::Real, ks::Real, kg
     return Rb
 end
 function resistance_borehole_multipole(V::Real, s::Real, rb::Real, ro::Real, ri::Real, ks::Real,
-    kg::Real, kp::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=0.0,
+    kg::Real, kp::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=0.0;
     nLoop::Int=1, order::Int=1)
     # Compute fluid and pipe resistances
     Rf = resistance_fluid(V / (π * ri^2), ri, kf, cf, ρf, μf, ϵ)
     Rp = resistance_pipe(ro, ri, kp)
 
     # Compute Rb with the first-order multipole method
-    return resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf, nLoop, order)
+    return resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop, order=order)
 end
 
 """
@@ -119,9 +119,9 @@ or Rbₑ).
     - `kg`: Grout thermal conductivity [W/mK]
     - `kp`: Pipe thermal conductivity [W/mK]
     - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cf(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_rho(T)`)
-    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_mu(T)`)
+    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
+    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
+    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_μ(T)`)
     - `ϵ`: Pipe roughness [m] (default 0.0)
     - `Rp`: Pipe thermal resistance [mK/W]
     - `Rf`: Fluid thermal resistance [mK/W]
@@ -142,7 +142,7 @@ or Rbₑ).
         https://doi.org/10.1080/23744731.2019.1620565
 """
 function resistance_total_internal_multipole(s::Real, rb::Real, ro::Real, ks::Real, kg::Real,
-    Rp::Real, Rf::Real, nLoop::Int=1, order::Int=1, network::String="diagonal")
+    Rp::Real, Rf::Real; nLoop::Int=1, order::Int=1, network::String="diagonal")
     # Initial parameters
     Rₚ = Rp + Rf                                    # Pipe and fluid resistance
     β = 2 * π * kg * Rₚ                             # β parameter for the multipole method
@@ -211,15 +211,15 @@ function resistance_total_internal_multipole(s::Real, rb::Real, ro::Real, ks::Re
     end
     return Ra
 end
-function resistance_total_internal_multipole(V::Real, s::Real, rb::Real, ro::Real, ri::Real, 
-    ks::Real, kg::Real, kp::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=0.0,
-    nLoop::Int=1, order::Int=1; network::String="diagonal")
+function resistance_total_internal_multipole(V::Real, s::Real, rb::Real, ro::Real, ri::Real,
+    ks::Real, kg::Real, kp::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=0.0;
+    nLoop::Int=1, order::Int=1, network::String="diagonal")
     # Compute fluid and pipe resistances
     Rf = resistance_fluid(V / (π * ri^2), ri, kf, cf, ρf, μf, ϵ)
     Rp = resistance_pipe(ro, ri, kp)
 
     # Compute Ra with the first-order multipole method
-    return resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf, nLoop, order, network)
+    return resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop, order=order, network=network)
 end
 
 """
@@ -231,7 +231,7 @@ Function that computes the effective thermal borehole resistance (also named Rb*
 allows considering the thermal short-circuiting along the borehole. Two types of boundary 
 conditions are commonly used: (1) uniform borehole wall temperature (UBW) or (2) uniform heat 
 flux (UHF). The most practical approach is to use an average of both approach.
-Note: This application is valid for single U-loop (n = 2).
+Note: The effective resistance formula is derived for single U-tube configurations (2 pipes per borehole, `nLoop = 1`).
 # Arguments
     - `V`: Fluid flow rate in pipe [m³/s]
     - `H`: Borehole length [m]
@@ -243,9 +243,9 @@ Note: This application is valid for single U-loop (n = 2).
     - `kg`: Grout thermal conductivity [W/mK]
     - `kp`: Pipe thermal conductivity [W/mK]
     - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cf(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_rho(T)`)
-    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_mu(T)`)
+    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
+    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
+    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_μ(T)`)
     - `Rb`: Borehole thermal resistance [mK/W]
     - `Ra`: Total internal thermal resistance [mK/W]
     - `ϵ`: Pipe roughness [m] (default 0.0)
@@ -278,24 +278,24 @@ function resistance_borehole_effective(V::Real, H::Real, cf::Real, ρf::Real, Rb
     return 0.5 * (Rbₑ1 + Rbₑ2)
 end
 function resistance_borehole_effective(V::Real, H::Real, s::Real, rb::Real, ro::Real, ks::Real,
-    kg::Real, cf::Real, ρf::Real, Rp::Real, Rf::Real, nLoop::Int=1)
+    kg::Real, cf::Real, ρf::Real, Rp::Real, Rf::Real; nLoop::Int=1)
     # Compute Rb and Ra with the first-order multipole methods
-        Rb = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf, nLoop, 1)
-        Ra = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf, nLoop, 1)
+        Rb = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
+        Ra = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
 
     # Compute Rbₑ
     return resistance_borehole_effective(V, H, cf, ρf, Rb, Ra)
 end
 function resistance_borehole_effective(V::Real, H::Real, s::Real, rb::Real, ro::Real, ri::Real,
-    ks::Real, kg::Real, kp::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=0.0,
-    nLoop::Int=1)    
+    ks::Real, kg::Real, kp::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=0.0;
+    nLoop::Int=1)
     # Compute fluid and pipe resistances
     Rf = resistance_fluid(V / (π * ri^2), ri, kf, cf, ρf, μf, ϵ)
     Rp = resistance_pipe(ro, ri, kp)
 
     # Compute Rb and Ra with the first-order multipole method
-    Rb = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf, nLoop, 1)
-    Ra = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf, nLoop, 1)
+    Rb = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
+    Ra = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
 
     # Compute Rbₑ
     return resistance_borehole_effective(V, H, cf, ρf, Rb, Ra)

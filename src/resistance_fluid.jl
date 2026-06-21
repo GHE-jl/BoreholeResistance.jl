@@ -1,7 +1,7 @@
 """
-    Reynold(V̇, r, ρf, μf)
+    Reynolds(V̇, r, ρf, μf)
 
-Reynold number of a fluid flowing in a pipe. Parameters `ρf` and `μf` depend on the fluid
+Reynolds number of a fluid flowing in a pipe. Parameters `ρf` and `μf` depend on the fluid
 temperature, and can be computed with functions `water_ρ` and `water_μ` respectively. This function
 is valid for both cylinder pipes and annulus regions.
 # Arguments
@@ -10,9 +10,9 @@ is valid for both cylinder pipes and annulus regions.
     - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
     - `μf`: Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
 # Output
-    - `Re`: Reynold number [-]
+    - `Re`: Reynolds number [-]
 """
-function Reynold(V̇::Real, r::Real, ρf::Real, μf::Real)
+function Reynolds(V̇::Real, r::Real, ρf::Real, μf::Real)
     return 2 * r * ρf * V̇ / μf
 end
 
@@ -24,8 +24,8 @@ Prandtl number of a fluid flowing in a pipe. Parameters `kf`, `cf`, and `μf` an
 temperature, and can be computed with functions `water_cf`, `water_μ` and `water_k` respectively.
 # Arguments
     - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `Cf`: Fluid volumetric specific heat [J/m³K] (`water_cf(T) * water_ρ(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cf(T)`)
+    - `Cf`: Fluid volumetric specific heat [J/m³K] (`water_cp(T) * water_ρ(T)`)
+    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
     - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
     - `μf`: Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
 # Output
@@ -46,7 +46,7 @@ Function that computes the friction factor of a fluid flowing in a pipe using th
 equation. The function uses an iterative method to solve the implicit equation. This function is 
 valid for both cylinder pipes and annulus regions.
 # Arguments
-    - `Re`: Reynolds number [-]
+    - `Re`: Reynoldss number [-]
     - `r`: Pipe inside or annulus (r = rb - ro) radius [m]
     - `ϵ`: Pipe roughness [m]
 # Output
@@ -65,10 +65,15 @@ function friction_factor_Colebrook_White(Re::Real, r::Real, ϵ::Real)
             f = (1 / (-2 * log10(ϵ / (3.7 * (2 * r)) + 2.51 / (Re * sqrt(f)))))^2
             err = abs(f - f_)
         end
+        return f
     end
-    return f
 end
 function friction_factor_Tkachenko_Mileikovskyi(Re::Real, r::Real, ϵ::Real)
+    if Re < eps()
+        return 0.0
+    elseif Re < 2320
+        return 64 / Re
+    end
     A₀ = -0.79638 * log(ϵ / (2 * r * 8.208) + 7.3357 / Re)
     A₁ = Re * ϵ / (2 * r) + A₀*9.3120665
     f = ((8.128943 + A₁) / (8.128943 * A₀ - 0.86859209 * A₁ * log(A₁ / (3.7099535 * Re))))^2
@@ -83,12 +88,12 @@ Nusselt number of a fluid flowing in a pipe. The function is based on the Gnieli
 which is valid for laminar, transition and turbulent flow. The function assumes that the fluid is
 flowing in a cylinder pipe, or in an annulus region.
 # Arguments
-    - `Re`: Reynold number [-]
+    - `Re`: Reynolds number [-]
     - `Pr`: Prandtl number [-]
     - `V̇`: Fluid *speed* in pipe [m/s]
     - `r`: Pipe inside or annulus (r = rb - ro) radius [m]
     - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cf(T)`)
+    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
     - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
     - `μf`: Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
     - `ϵ`: Pipe roughness [m] (default 5e-6 for HDPE pipes)
@@ -109,10 +114,12 @@ function Nusselt(Re::Real, Pr::Real, r::Real, ϵ::Real=5e-6)
         f = friction_factor_Colebrook_White(Re, r, ϵ)
         # Gnielinski (Eq. 2.43b of Lamarche 2023)
         return (f / 8) * (Re - 1000) * Pr / (1 + (12.7 * (f / 8)^0.5 * (Pr^(2 / 3) - 1)))
+    else
+        error("Reynoldss number must be non-negative.")
     end
 end
 function Nusselt(V̇::Real, r::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=5e-6)
-    Re = Reynold(V̇, r, ρf, μf)
+    Re = Reynolds(V̇, r, ρf, μf)
     Pr = Prandtl(kf, cf, μf)
     return Nusselt(Re, Pr, r, ϵ)
 end
@@ -124,13 +131,13 @@ end
 Function that computes the Nusselt number of a fluid flowing in an annulus region. The function is
 based on the Gnielinski correlation, which is valid for laminar, transition and turbulent flow.
 # Arguments
-    - `Re`: Reynold number [-]
+    - `Re`: Reynolds number [-]
     - `Pr`: Prandtl number [-]
     - `V̇`: Fluid *speed* in pipe [m/s]
     - `rb`: Outer radius of the annulus region [m]
     - `ro`: Inner radius of the annulus region [m]
     - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cf(T)`)
+    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
     - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
     - `μf`: Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
     - `ϵo`: Outer pipe roughness [m] (default 5e-6 for HDPE pipes)
@@ -150,7 +157,7 @@ function Nusselt_annulus(Re::Real, Pr::Real, rb::Real, ro::Real, ϵo::Real=5e-6,
         Fₐ = (0.75 * a^-0.17 + (0.9 - 0.15 * a^0.6)) / (1 + a) # Eq. 64a of Lamarche 2021
         k₁ = 1.07 + (900 / 4000) - (0.63 / (1 + 10 * Pr))
         ϵ = (ϵo * rb + ϵi * ro) / (rb + ro)     # Equivalent roughness of the annulus region
-        f = friction_factor_Colebrook_White(4000, (rb - ro) / 2, ϵ)
+        f = friction_factor_Colebrook_White(4000, rb - ro, ϵ)
         Nu_4k = Fₐ * (f / 8) * (4000 - 1000) * Pr / (k₁ + (12.7 * (f / 8)^0.5 * (Pr^(2 / 3) - 1)))
         γ = (Re - 2300) / (4000 - 2300)
         return (1 - γ) * (3.66 + 1.2 * sqrt(a)) + γ * Nu_4k
@@ -158,13 +165,15 @@ function Nusselt_annulus(Re::Real, Pr::Real, rb::Real, ro::Real, ϵo::Real=5e-6,
         Fₐ = (0.75 * a^-0.17 + (0.9 - 0.15 * a^0.6)) / (1 + a) # Eq. 64a of Lamarche 2021
         k₁ = 1.07 + (900 / Re) - (0.63 / (1 + 10 * Pr))
         ϵ = (ϵo * rb + ϵi * ro) / (rb + ro)     # Equivalent roughness of the annulus region
-        f = friction_factor_Colebrook_White(Re, (rb - ro) / 2, ϵ)
+        f = friction_factor_Colebrook_White(Re, rb - ro, ϵ)
         return Fₐ * (f / 8) * (Re - 1000) * Pr / (k₁ + (12.7 * (f / 8)^0.5 * (Pr^(2 / 3) - 1)))
+    else
+        error("Reynoldss number must be non-negative.")
     end
 end
 function Nusselt_annulus(V̇::Real, rb::Real, ro::Real, kf::Real, cf::Real, ρf::Real, μf::Real,
     ϵo::Real=5e-6, ϵi::Real=5e-6)
-    Re = Reynold(V̇, rb - ro, ρf, μf)
+    Re = Reynolds(V̇, rb - ro, ρf, μf)
     Pr = Prandtl(kf, cf, μf)
     return Nusselt_annulus(Re, Pr, rb, ro, ϵo, ϵi)
 end
@@ -180,7 +189,7 @@ The fluid is assumed to be flowing in a single cylinder pipe.
     - `V̇`: Fluid *speed* in pipe [m/s]
     - `r`: Pipe inside or annulus (r = rb - ro) radius [m]
     - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf` (default 4200.0): Fluid specific heat [J/kgK] (`water_cf(T)`)
+    - `cf` (default 4200.0): Fluid specific heat [J/kgK] (`water_cp(T)`)
     - `ρf` (default 1000.0): Fluid density [kg/m³] (`water_ρ(T)`)
     - `μf` (default 1.3e-3): Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
     - `ϵ`: Pipe roughness [m] (default 5e-6 for HDPE pipes)
@@ -190,7 +199,7 @@ The fluid is assumed to be flowing in a single cylinder pipe.
     - Lamarche, L. (2023). Fundamentals of Geothermal Heat Pump Systems: Design and Application. 
         Springer Nature Switzerland.
 """
-function resistance_fluid(Nu, r, kf)
+function resistance_fluid(Nu::Real, r::Real, kf::Real)
     # Convection coefficient
     h = Nu * kf / (2 * r)                      # Eq. 2.32 of Lamarche 2023
     # Fluid convective resistance

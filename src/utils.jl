@@ -107,5 +107,5 @@ Function that calculates the head loss in a pipe using the Darcy-Weisbach equati
     - `h`: Head loss [m]
 """
 function head_loss_Darcy_Weisbach(L::Real, r::Real, V::Real, f::Real)
-    return f * (L / (2 * r)) * (V^2 / 2)
+    return f * (L / (2 * r)) * (V^2 / (2 * 9.81))
 end
