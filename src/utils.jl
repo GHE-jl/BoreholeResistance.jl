@@ -94,18 +94,3 @@ function water_μ(T::Real)
         1.8236868027209892e-8*T^3 + 1.3644271817518522e-10*T^4 - 4.137645533574321e-13*T^5
 end
 
-"""
-    head_loss_Darcy_Weisbach(L, D, V, f)
-
-Function that calculates the head loss in a pipe using the Darcy-Weisbach equation.
-# Arguments
-    - `L`: Length of the pipe [m]
-    - `r`: Pipe inside or annulus (r = rb - ro) radius [m]
-    - `V`: Velocity of the fluid in the pipe [m/s]
-    - `f`: Darcy friction factor [-] (from `friction_factor_Colebrook_White()`)
-# Output
-    - `h`: Head loss [m]
-"""
-function head_loss_Darcy_Weisbach(L::Real, r::Real, V::Real, f::Real)
-    return f * (L / (2 * r)) * (V^2 / (2 * 9.81))
-end

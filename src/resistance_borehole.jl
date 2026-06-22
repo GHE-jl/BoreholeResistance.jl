@@ -153,7 +153,7 @@ function resistance_total_internal_multipole(s::Real, rb::Real, ro::Real, ks::Re
         θ₁ = s / (2 * rb)
         θ₃ = ro / s
 
-        # Compute Rₐ with Eq. 26 from Javed and Spitler 2017
+        # Eq. 26 from Javed and Spitler 2017
         if order == 0
             Ra = (1 / (π * kg)) * (β + log((1 + θ₁^2)^σ / (θ₃ * (1 - θ₁^2)^σ)))
         elseif order == 1
@@ -166,26 +166,30 @@ function resistance_total_internal_multipole(s::Real, rb::Real, ro::Real, ks::Re
         end
     elseif nLoop == 2                               # Double U-loop
         if network == "diagonal"
-            if order == 0                           # Zeroth-order multipole method (line-source)
-                Ra = 2 * Rₚ + (2 / (2 * π * kg)) * (log(s / (2 * ro)) + σ * log((rb^4 + (s / 2)^4) / 
+            if order == 0
+                # Eq. 18 from Claesson and Javed 2019 (diagonal network, zeroth-order multipole)
+                Ra = 2 * Rₚ + (1 / (π * kg)) * (log(s / (2 * ro)) + σ * log((rb^4 + (s / 2)^4) / 
                     (rb^4 - (s / 2)^4)))
-            elseif order == 1                       # First-order multipole method
+            elseif order == 1
+                # Eq. 19 from Claesson and Javed 2019 (diagonal network, first-order multipole)
                 θ₁ = ro^2 / (4 * (s / 2)^2)
                 θ₂ = (s / 2)^2 / (rb^8 - (s / 2)^8)^(1/4)
                 θ₃ = rb^2 / (rb^8 - (s / 2)^8)^(1/4)
                 b₁ = (1 - β) / (1 + β)
 
-                Ra = 2 * Rₚ + (2 / (2 * π * kg)) * (log(s / (2 * ro)) + σ * log((rb^4 + (s / 2)^4) /
-                    (rb^4 - (s / 2)^4))) - ((2 * b₁ * θ₁ * (1 + 8 * σ * θ₂^2 * θ₃^2)^2) / 
-                    ((2 * π * kg) * (1 - b₁ * θ₁ * (3 - 32 * σ * (θ₂^2 * θ₃^6 + θ₂^6 * θ₃^2)))))
+                Ra = 2 * Rₚ + (1 / (π * kg)) * (log(s / (2 * ro)) + σ * log((rb^4 + (s / 2)^4) /
+                    (rb^4 - (s / 2)^4))) - ((1 / (π * kg)) * (b₁ * θ₁ * (1 + 8 * σ * θ₂^2 * 
+                    θ₃^2)^2) / (1 - b₁ * θ₁ * (3 - 32 * σ * (θ₂^2 * θ₃^6 + θ₂^6 * θ₃^2))))
             else
                 error("Only order 0 and 1 are implemented for the multipole method.")
             end
         elseif network == "adjacent"
-            if order == 0                           # Zeroth-order multipole method (line-source)
-                Ra = 2 * Rₚ + (2 / (2 * π * kg)) * (log(s / ro) + σ * log((rb^2 + (s / 2)^2) /
+            if order == 0
+                # Eq. 22 from Claesson and Javed 2019 (adjacent network, zeroth-order multipole)
+                Ra = 2 * Rₚ + (1 / (π * kg)) * (log(s / ro) + σ * log((rb^2 + (s / 2)^2) /
                     (rb^2 - (s / 2)^2)))
-            elseif order == 1                       # First-order multipole method
+            elseif order == 1
+                # Eq. 23 from Claesson and Javed 2019 (adjacent network, first-order multipole)
                 θ₁ = ro^2 / (4 * (s / 2)^2)
                 θ₂ = (s / 2)^2 / (rb^8 - (s / 2)^8)^(1/4)
                 θ₃ = rb^2 / (rb^8 - (s / 2)^8)^(1/4)
@@ -195,11 +199,11 @@ function resistance_total_internal_multipole(s::Real, rb::Real, ro::Real, ks::Re
                 M11 = 1 + 16 * b₁ * σ * θ₁ * (3 * θ₂^3 * θ₃^5 + θ₂^7 * θ₃)
                 M21 = b₁ * θ₁
                 M12 = -M21
-                M22 = -1 - 16 * b₁ * σ * θ₁ * (3 * θ₂^5 * θ₃^3 + θ₂ * θ₃^7)
+                M22 = -1 - 16 * b₁ * σ * θ₁ * (θ₂ * θ₃^7 + 3 * θ₂^5 * θ₃^3)
 
-                Ra = 2 * Rₚ + (2 / (2 * π * kg)) * (log(s / ro) + σ * log((rb^2 + (s / 2)^2) /
-                    (rb^2 - (s / 2)^2))) + ((b₁ * θ₁ * V2^2 * M11 - 2 * V1 * V2 * M21 - V1^2 * M22)
-                    / (M11 * M22 + M21^2))
+                Ra = 2 * Rₚ + (1 / (π * kg)) * (log(s / ro) + σ * log((rb^2 + (s / 2)^2) /
+                    (rb^2 - (s / 2)^2))) + (1 / (π * kg)) * ((b₁ * θ₁ * (V2^2 * M11 - 2 * V1 * V2 *
+                    M21 - V1^2 * M22)) / (M11 * M22 + M21^2))
             else
                 error("Only order 0 and 1 are implemented for the multipole method.")
             end
@@ -219,7 +223,8 @@ function resistance_total_internal_multipole(V::Real, s::Real, rb::Real, ro::Rea
     Rp = resistance_pipe(ro, ri, kp)
 
     # Compute Ra with the first-order multipole method
-    return resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop, order=order, network=network)
+    return resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop, order=order,
+        network=network)
 end
 
 """
@@ -231,7 +236,8 @@ Function that computes the effective thermal borehole resistance (also named Rb*
 allows considering the thermal short-circuiting along the borehole. Two types of boundary 
 conditions are commonly used: (1) uniform borehole wall temperature (UBW) or (2) uniform heat 
 flux (UHF). The most practical approach is to use an average of both approach.
-Note: The effective resistance formula is derived for single U-tube configurations (2 pipes per borehole, `nLoop = 1`).
+Note: The effective resistance formula is derived for single U-tube configurations (2 pipes per
+borehole, `nLoop = 1`).
 # Arguments
     - `V`: Fluid flow rate in pipe [m³/s]
     - `H`: Borehole length [m]

@@ -23,6 +23,6 @@ export resistance_borehole_multipole, resistance_total_internal_multipole,
     resistance_borehole_effective
 
 # Utility exports
-export water_ρ, water_cp, water_k, water_μ, head_loss_Darcy_Weisbach
+export water_ρ, water_cp, water_k, water_μ
 
 end

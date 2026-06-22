@@ -46,7 +46,7 @@ Function that computes the friction factor of a fluid flowing in a pipe using th
 equation. The function uses an iterative method to solve the implicit equation. This function is 
 valid for both cylinder pipes and annulus regions.
 # Arguments
-    - `Re`: Reynoldss number [-]
+    - `Re`: Reynolds number [-]
     - `r`: Pipe inside or annulus (r = rb - ro) radius [m]
     - `ϵ`: Pipe roughness [m]
 # Output
@@ -115,7 +115,7 @@ function Nusselt(Re::Real, Pr::Real, r::Real, ϵ::Real=5e-6)
         # Gnielinski (Eq. 2.43b of Lamarche 2023)
         return (f / 8) * (Re - 1000) * Pr / (1 + (12.7 * (f / 8)^0.5 * (Pr^(2 / 3) - 1)))
     else
-        error("Reynoldss number must be non-negative.")
+        error("Reynolds number must be non-negative.")
     end
 end
 function Nusselt(V̇::Real, r::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=5e-6)
@@ -168,7 +168,7 @@ function Nusselt_annulus(Re::Real, Pr::Real, rb::Real, ro::Real, ϵo::Real=5e-6,
         f = friction_factor_Colebrook_White(Re, rb - ro, ϵ)
         return Fₐ * (f / 8) * (Re - 1000) * Pr / (k₁ + (12.7 * (f / 8)^0.5 * (Pr^(2 / 3) - 1)))
     else
-        error("Reynoldss number must be non-negative.")
+        error("Reynolds number must be non-negative.")
     end
 end
 function Nusselt_annulus(V̇::Real, rb::Real, ro::Real, kf::Real, cf::Real, ρf::Real, μf::Real,
