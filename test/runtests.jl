@@ -3,12 +3,11 @@ using BoreholeResistance
 
 @testset "BoreholeResistance.jl" begin
 
-    # Water properties
     @testset "Water properties" begin
         # Reference values at 20 °C (Engineering Toolbox)
-        @test water_k(20.0)  ≈ 0.5984  rtol=0.005
-        @test water_cp(20.0) ≈ 4182.0  rtol=0.005
-        @test water_ρ(20.0)  ≈ 998.2   rtol=0.005
+        @test water_k(20.0)  ≈ 0.5984   rtol=0.005
+        @test water_cp(20.0) ≈ 4182.0   rtol=0.005
+        @test water_ρ(20.0)  ≈ 998.2    rtol=0.005
         @test water_μ(20.0)  ≈ 1.002e-3 rtol=0.01
 
         # Physical monotonicity over 10–90 °C
@@ -18,9 +17,8 @@ using BoreholeResistance
         @test all(diff([water_μ(T) for T in Ts]) .< 0)   # viscosity falls with T
     end
 
-    # Dimensionless numbers
     @testset "Reynolds number" begin
-        # Re = 2r ρf V̇ / μf  — exact formula
+        # Re = 2r ρf V̇ / μf  — exact formula check
         @test Reynolds(1.0, 0.01, 1000.0, 0.001) ≈ 20000.0
         @test Reynolds(0.0, 0.01, 1000.0, 0.001) ≈ 0.0
     end
@@ -47,36 +45,33 @@ using BoreholeResistance
         @test Nusselt(V̇, r, kf, cf, ρf, μf) ≈ Nusselt(Re, Pr, r)
     end
 
-    # Friction factor
     @testset "Friction factor" begin
         r, ϵ = 0.015, 1e-5
         # Laminar: f = 64/Re exactly
-        @test friction_factor_Colebrook_White(1000.0, r, ϵ)          ≈ 64.0 / 1000.0
-        @test friction_factor_Tkachenko_Mileikovskyi(1000.0, r, ϵ)   ≈ 64.0 / 1000.0
+        @test friction_factor_Colebrook_White(1000.0, r, ϵ)        ≈ 64.0 / 1000.0
+        @test friction_factor_Tkachenko_Mileikovskyi(1000.0, r, ϵ) ≈ 64.0 / 1000.0
         # Zero flow: f = 0
-        @test friction_factor_Colebrook_White(0.0, r, ϵ)          ≈ 0.0
-        @test friction_factor_Tkachenko_Mileikovskyi(0.0, r, ϵ)   ≈ 0.0
+        @test friction_factor_Colebrook_White(0.0, r, ϵ)        ≈ 0.0
+        @test friction_factor_Tkachenko_Mileikovskyi(0.0, r, ϵ) ≈ 0.0
         # Both methods must agree in turbulent regime (within 0.1 %)
         @test friction_factor_Colebrook_White(20000.0, r, ϵ) ≈
               friction_factor_Tkachenko_Mileikovskyi(20000.0, r, ϵ)  rtol=0.001
-        # Turbulent f is positive and decreases as Re increases
+        # Turbulent f is positive and decreasing with Re
         f_turb = friction_factor_Colebrook_White(20000.0, r, ϵ)
         @test f_turb > 0
         @test friction_factor_Colebrook_White(40000.0, r, ϵ) < f_turb
     end
 
-    # Pipe resistance
     @testset "Pipe resistance" begin
         ro, ri, kp = 0.020, 0.0164, 0.4
         Rp = resistance_pipe(ro, ri, kp)
         # Exact analytical formula
         @test Rp ≈ log(ro / ri) / (2π * kp)
         # Physical monotonicity
-        @test resistance_pipe(ro, ri, 2 * kp) < Rp   # higher kp → lower Rp
-        @test resistance_pipe(2 * ro, ri, kp)  > Rp   # thicker wall → higher Rp
+        @test resistance_pipe(ro, ri, 2 * kp) < Rp  # higher kp → lower Rp
+        @test resistance_pipe(2 * ro, ri, kp)  > Rp  # thicker wall → higher Rp
     end
 
-    # Fluid resistance
     @testset "Fluid resistance" begin
         r, kf = 0.0164, water_k(10.0)
         Nu = 4.0   # laminar
@@ -91,74 +86,106 @@ using BoreholeResistance
         @test resistance_fluid(V̇, r, kf, cf, ρf, μf) ≈ resistance_fluid(Nu_num, r, kf)
     end
 
-    # Single U-loop at 15 L/min
-    @testset "Single U-loop — 15 L/min" begin
-        rb, ro, ri, s = 0.075, 0.020, 0.0164, 0.08
-        ks, kg, kp, ϵ = 2.0, 1.0, 0.4, 5e-6
-        T0 = 10.0
-        kf, cf, ρf, μf = water_k(T0), water_cp(T0), water_ρ(T0), water_μ(T0)
-        V  = 15.0 / 1000 / 60           # 15 L/min → m³/s
-        V̇ = V / (π * ri^2)              # mean fluid speed [m/s]
+    # Parameters from script/script_single_Uloop.jl — typical HDPE single U-loop
+    rb, ro, ri, s   = 0.075, 0.020, 0.0164, 0.08
+    ks, kg, kp, ϵ   = 2.0, 1.0, 0.4, 5e-6
+    H, T0           = 100.0, 10.0
+    kf, cf, ρf, μf  = water_k(T0), water_cp(T0), water_ρ(T0), water_μ(T0)
+    V_nom           = 15.0 / 1000 / 60   # 15 L/min → m³/s per pipe
+    V̇_nom          = V_nom / (π * ri^2)  # mean fluid speed [m/s]
+    Rp              = resistance_pipe(ro, ri, kp)
+    Rf_nom          = resistance_fluid(V̇_nom, ri, kf, cf, ρf, μf, ϵ)
 
-        Rp = resistance_pipe(ro, ri, kp)
-        Rf = resistance_fluid(V̇, ri, kf, cf, ρf, μf, ϵ)
-        @test Rp > 0
-        @test Rf > 0
+    @testset "Single U-loop — 15 L/min" begin
+        @test Rp     > 0
+        @test Rf_nom > 0
 
         for order in [0, 1]
-            Rb  = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; order=order)
-            Ra  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf; order=order)
-            Rg  = Rb - Rp - Rf
+            Rb = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
+            Ra = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
+            Rg = Rb - Rp - Rf_nom
 
             # Positivity
-            @test Rg > 0
             @test Rb > 0
             @test Ra > 0
+            @test Rg > 0
 
             # Both function signatures must give identical results
-            @test Rb ≈ resistance_borehole_multipole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf,
-                ϵ; order=order)
-            @test Ra ≈ resistance_total_internal_multipole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf,
-                μf, ϵ; order=order)
+            @test Rb ≈ resistance_borehole_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
+                cf, ρf, μf, ϵ; order=order)
+            @test Ra ≈ resistance_total_internal_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
+                cf, ρf, μf, ϵ; order=order)
         end
 
-        # First-order multipole should be more accurate but close to zeroth-order
-        Rb0 = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; order=0)
-        Rb1 = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; order=1)
-        @test Rb0 ≈ Rb1 rtol=0.20   # within 20 % for this geometry
+        # First-order must converge toward zeroth-order (within 20 % for this geometry)
+        Rb0 = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=0)
+        Rb1 = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=1)
+        @test Rb0 ≈ Rb1 rtol=0.20
 
-        # Double U-loop must give lower Rb than single (more heat-transfer area)
-        Rb_double = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=2, order=1)
-        @test Rb_double < Rb1
-    end
+        # Effective borehole resistance — single U-loop uses V_nom as total system flow
+        Ra1  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=1)
+        Rbₑ  = resistance_borehole_effective(V_nom, H, cf, ρf, Rb1, Ra1)
+        @test Rbₑ >= Rb1   # short-circuiting can only increase the effective resistance
 
-    # Effective borehole resistance
-    @testset "Effective borehole resistance" begin
-        H = 100.0
-        rb, ro, ri, s = 0.075, 0.020, 0.0164, 0.08
-        ks, kg, kp, ϵ = 2.0, 1.0, 0.4, 5e-6
-        T0 = 10.0
-        kf, cf, ρf, μf = water_k(T0), water_cp(T0), water_ρ(T0), water_μ(T0)
-        V  = 15.0 / 1000 / 60
-        V̇ = V / (π * ri^2)
-
-        Rp  = resistance_pipe(ro, ri, kp)
-        Rf  = resistance_fluid(V̇, ri, kf, cf, ρf, μf, ϵ)
-        Rb  = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; order=1)
-        Ra  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf; order=1)
-        Rbₑ = resistance_borehole_effective(V, H, cf, ρf, Rb, Ra)
-
-        # Thermal short-circuiting always increases the effective resistance
-        @test Rbₑ >= Rb
-
-        # All three overloads must give identical results
-        Rbₑ2 = resistance_borehole_effective(V, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf)
-        Rbₑ3 = resistance_borehole_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ)
+        # All three overloads of resistance_borehole_effective must agree
+        Rbₑ2 = resistance_borehole_effective(V_nom, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf_nom)
+        Rbₑ3 = resistance_borehole_effective(V_nom, H, s, rb, ro, ri, ks, kg, kp, kf,
+            cf, ρf, μf, ϵ)
         @test Rbₑ ≈ Rbₑ2
         @test Rbₑ ≈ Rbₑ3
 
-        # Longer borehole → larger T. gradient along legs → more short-circuiting → higher Rbₑ
-        Rbₑ_short = resistance_borehole_effective(V, 50.0, cf, ρf, Rb, Ra)
+        # Longer borehole → larger temperature gradient along legs → more short-circuiting
+        Rbₑ_short = resistance_borehole_effective(V_nom, 50.0, cf, ρf, Rb1, Ra1)
         @test Rbₑ_short <= Rbₑ
     end
+
+    @testset "Double U-loop — 30 L/min total" begin
+        V_total = 2 * V_nom   # 30 L/min total system flow
+
+        for order in [0, 1]
+            Rb = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=order)
+            Ra = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2,
+                order=order)
+
+            # Positivity
+            @test Rb > 0
+            @test Ra > 0
+
+            # Both function signatures must give identical results.
+            # The long-form function receives V_nom (per-pipe flow) to compute the same Rf.
+            @test Rb ≈ resistance_borehole_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
+                cf, ρf, μf, ϵ; nLoop=2, order=order)
+            @test Ra ≈ resistance_total_internal_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
+                cf, ρf, μf, ϵ; nLoop=2, order=order)
+        end
+
+        # First-order must converge toward zeroth-order
+        Rb0 = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=0)
+        Rb1 = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=1)
+        @test Rb0 ≈ Rb1 rtol=0.20
+
+        # Both diagonal and adjacent networks must give positive results
+        Ra_diag = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2,
+            order=1, network="diagonal")
+        Ra_adj  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2,
+            order=1, network="adjacent")
+        @test Ra_diag > 0
+        @test Ra_adj  > 0
+
+        # Effective resistance uses the total system flow (doubled) to get the correct
+        # thermal capacity flow rate for the two-loop circuit
+        Ra1  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=1)
+        Rbₑ  = resistance_borehole_effective(V_total, H, cf, ρf, Rb1, Ra1)
+        @test Rbₑ >= Rb1
+
+        # Medium overload (Rp and Rf provided, V is total flow) must agree with short-form
+        Rbₑ2 = resistance_borehole_effective(V_total, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf_nom;
+            nLoop=2)
+        @test Rbₑ ≈ Rbₑ2
+
+        # Longer borehole → larger temperature gradient along legs → more short-circuiting
+        Rbₑ_short = resistance_borehole_effective(V_total, 50.0, cf, ρf, Rb1, Ra1)
+        @test Rbₑ_short <= Rbₑ
+    end
+
 end

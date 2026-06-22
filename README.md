@@ -93,7 +93,7 @@ resistance_borehole_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf,
     nLoop=1)
 ```
 
-## Validation scripts
+## Scripts
 
 Run from the package root with `julia --project=script/ script/<name>.jl`.
 First-time setup:
@@ -107,6 +107,34 @@ julia --project=script/ -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
 | `script_double_Uloop.jl` | Double U-tube: Rb, Ra diagonal/adjacent (order 0/1), Rbe, all overloads |
 | `script_annulus.jl` | Friction factors CW vs TM, Nusselt pipe vs annulus, all overloads |
 | `script_coaxial.jl` | Coaxial GHE (placeholder — not yet implemented) |
+
+## Installation
+
+The package is not yet registered. Install directly from the repository:
+
+```julia
+using Pkg
+Pkg.add(url = "https://github.com/GeothermalJL/BoreholeResistance.jl")
+```
+
+Or in the Julia REPL package manager (`]`):
+
+```
+pkg> add https://github.com/GeothermalJL/BoreholeResistance.jl
+```
+
+## Dependencies
+
+### Library
+
+No external dependencies. All required functions are implemented in pure Julia using only the
+standard library.
+
+### Scripts only
+
+| Package | Used in |
+|---------|---------|
+| [CairoMakie.jl](https://github.com/MakieOrg/Makie.jl) | All visualisation scripts |
 
 ## Integration with GroundHeatExchanger.jl
 

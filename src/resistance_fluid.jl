@@ -20,8 +20,8 @@ end
     Prandtl(kf, cf, μf)
     Prandtl(kf, Cf, ρf, μf)
 
-Prandtl number of a fluid flowing in a pipe. Parameters `kf`, `cf`, and `μf` and depend on the fluid
-temperature, and can be computed with functions `water_cf`, `water_μ` and `water_k` respectively.
+Prandtl number of a fluid flowing in a pipe. Parameters `kf`, `cf`, and `μf` depend on the fluid
+temperature, and can be computed with functions `water_cp`, `water_μ` and `water_k` respectively.
 # Arguments
     - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
     - `Cf`: Fluid volumetric specific heat [J/m³K] (`water_cp(T) * water_ρ(T)`)
@@ -40,11 +40,10 @@ end
 
 """
     friction_factor_Colebrook_White(Re, r, ϵ)
-    friction_factor_Tkachenko_Mileikovskyi(Re, r, ϵ)
 
-Function that computes the friction factor of a fluid flowing in a pipe using the Colebrook-White
-equation. The function uses an iterative method to solve the implicit equation. This function is 
-valid for both cylinder pipes and annulus regions.
+Darcy friction factor via the implicit Colebrook-White equation, solved iteratively. Valid for
+laminar flow (Re < 2300, returns 64/Re) and turbulent flow. Valid for both cylinder pipes and
+annulus regions.
 # Arguments
     - `Re`: Reynolds number [-]
     - `r`: Pipe inside or annulus (r = rb - ro) radius [m]
@@ -68,6 +67,20 @@ function friction_factor_Colebrook_White(Re::Real, r::Real, ϵ::Real)
         return f
     end
 end
+
+"""
+    friction_factor_Tkachenko_Mileikovskyi(Re, r, ϵ)
+
+Darcy friction factor via the explicit Tkachenko-Mileikovskyi approximation. Agrees with the
+Colebrook-White equation within 1% for typical GHE flow conditions. Valid for laminar flow
+(Re < 2320, returns 64/Re) and turbulent flow.
+# Arguments
+    - `Re`: Reynolds number [-]
+    - `r`: Pipe inside or annulus (r = rb - ro) radius [m]
+    - `ϵ`: Pipe roughness [m]
+# Output
+    - `f`: Friction factor [-]
+"""
 function friction_factor_Tkachenko_Mileikovskyi(Re::Real, r::Real, ϵ::Real)
     if Re < eps()
         return 0.0
@@ -145,7 +158,7 @@ based on the Gnielinski correlation, which is valid for laminar, transition and 
     # Output
     - `Nu`: Nusselt number [-]
 # Reference
-    - Lamarche, L. (2021). Analytic models and effective resistances for coaxial ground heat 
+    - Lamarche, L. (2021). Analytic models and effective resistances for coaxial ground heat
         exchangers. Geothermics, 97, 102224. https://doi.org/10.1016/j.geothermics.2021.102224
 """
 function Nusselt_annulus(Re::Real, Pr::Real, rb::Real, ro::Real, ϵo::Real=5e-6, ϵi::Real=5e-6)
@@ -182,21 +195,20 @@ end
     resistance_fluid(Nu, r, kf)
     resistance_fluid(V̇, r, kf, cf, ρf, μf, ϵ=5e-6)
 
-Function that computes the convective thermal resistance of a fluid in contact with a surface.
-The fluid is assumed to be flowing in a single cylinder pipe.
+Convective thermal resistance of a fluid flowing in a single cylinder pipe.
 # Arguments
     - `Nu`: Nusselt number [-]
     - `V̇`: Fluid *speed* in pipe [m/s]
-    - `r`: Pipe inside or annulus (r = rb - ro) radius [m]
+    - `r`: Pipe inner radius [m]
     - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf` (default 4200.0): Fluid specific heat [J/kgK] (`water_cp(T)`)
-    - `ρf` (default 1000.0): Fluid density [kg/m³] (`water_ρ(T)`)
-    - `μf` (default 1.3e-3): Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
+    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
+    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
+    - `μf`: Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
     - `ϵ`: Pipe roughness [m] (default 5e-6 for HDPE pipes)
 # Output
     - `Rf`: Fluid convective thermal resistance [mK/W]
 # Reference
-    - Lamarche, L. (2023). Fundamentals of Geothermal Heat Pump Systems: Design and Application. 
+    - Lamarche, L. (2023). Fundamentals of Geothermal Heat Pump Systems: Design and Application.
         Springer Nature Switzerland.
 """
 function resistance_fluid(Nu::Real, r::Real, kf::Real)
@@ -208,11 +220,4 @@ end
 function resistance_fluid(V̇::Real, r::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=5e-6)
     Nu = Nusselt(V̇, r, kf, cf, ρf, μf, ϵ)   # Eq. 2.42 of Lamarche 2023
     return resistance_fluid(Nu, r, kf)
-end
-
-"""
-    resistance_fluid_annulus()
-"""
-function resistance_fluid_annulus()
-#TODO
 end
