@@ -6,7 +6,7 @@
 
 using BoreholeResistance
 
-# --- Parameters (coaxial geometry: fluid in annulus between borehole and inner pipe) ---
+# Parameters (coaxial geometry: fluid in annulus between borehole and inner pipe)
 rb = 0.075       # Borehole radius = outer annulus radius [m]
 ro = 0.030       # Inner pipe outer radius = inner annulus radius [m]
 T0 = 10.0        # Reference fluid temperature [°C]
@@ -20,7 +20,7 @@ cf = water_cp(T0)
 r_h       = rb - ro              # Annulus hydraulic radius = D_h / 2 [m]
 A_annulus = π * (rb^2 - ro^2)   # Annulus cross-sectional area [m²]
 
-# --- Point check at V = 15 L/min ---
+# Point check at V = 15 L/min
 V_nom  = 15.0 / 1000 / 60
 V̇_nom = V_nom / A_annulus
 
@@ -34,7 +34,7 @@ println("=== Point check at V = 15 L/min ===")
 println("  Re = $(round(Int, Re_nom)),  Pr = $(round(Pr_nom, digits=3))")
 println()
 
-# --- Friction factors: Colebrook-White vs Tkachenko-Mileikovskyi ---
+# Friction factors: Colebrook-White vs Tkachenko-Mileikovskyi
 println("=== Friction factor comparison (Colebrook-White vs Tkachenko-Mileikovskyi) ===")
 println(rpad("Re", 10), " ", rpad("f_CW", 12), " ", rpad("f_TM", 12), " ", "rel. diff")
 for Re_ff in [1000.0, 2300.0, 4000.0, 1e4, 5e4, 1e5, 5e5]
@@ -51,7 +51,7 @@ for Re_ff in [1000.0, 2300.0, 4000.0, 1e4, 5e4, 1e5, 5e5]
 end
 println()
 
-# --- Nusselt: pipe formula vs annulus-specific correlation ---
+# Nusselt: pipe formula vs annulus-specific correlation
 Nu_pipe = Nusselt(Re_nom, Pr_nom, r_h, ϵ)
 Nu_ann  = Nusselt_annulus(Re_nom, Pr_nom, rb, ro, ϵ, ϵ)
 

@@ -42,8 +42,11 @@ for order in [0, 1]
                   nLoop=2, order=order, network="adjacent")
 
     # Long-form overloads must agree with short-form
-    @assert Rb ≈ resistance_borehole_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ; nLoop=2, order=order)  "resistance_borehole_multipole overloads must agree (order $order)"
-    @assert Ra_diag ≈ resistance_total_internal_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ; nLoop=2, order=order, network="diagonal")  "resistance_total_internal_multipole overloads must agree"
+    @assert Rb ≈ resistance_borehole_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ;
+        nLoop=2, order=order)  "resistance_borehole_multipole overloads must agree (order $order)"
+    @assert Ra_diag ≈ resistance_total_internal_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf,
+        ρf, μf, ϵ; nLoop=2, order=order, network="diagonal")  "resistance_total_internal_multipole
+        overloads must agree"
 
     @assert Rb > 0
     @assert Ra_diag > 0
@@ -66,7 +69,8 @@ Ra_d  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf;
             nLoop=2, order=1, network="diagonal")
 Rbe_d = resistance_borehole_effective(V_nom, H, cf, ρf, Rb_d, Ra_d)
 @assert Rbe_d >= Rb_d  "Rbe must be ≥ Rb"
-println("  Rb = $(round(Rb_d, digits=4)),  Ra = $(round(Ra_d, digits=4)),  Rbe = $(round(Rbe_d, digits=4)) mK/W")
+println("  Rb = $(round(Rb_d, digits=4)),  Ra = $(round(Ra_d, digits=4)),
+    Rbe = $(round(Rbe_d, digits=4)) mK/W")
 println()
 
 # --- Single vs double comparison (order 1) ---
@@ -80,7 +84,8 @@ println()
 
 # --- Flow-rate sweep (diagonal, order 1) ---
 println("=== Flow-rate sweep (double U-loop, diagonal, order 1) ===")
-println(rpad("V [L/min]", 12), " ", rpad("Re", 8), " ", rpad("Rf", 8), " ", rpad("Rb", 8), " ", "Ra_diag")
+println(rpad("V [L/min]", 12), " ", rpad("Re", 8), " ", rpad("Rf", 8), " ", rpad("Rb", 8), " ",
+    "Ra_diag")
 for Q_Lmin in [5.0, 10.0, 15.0, 20.0, 30.0, 50.0, 80.0, 120.0]
     local V, V̇, Re, Rf_i, Rb, Ra
     V    = Q_Lmin / 1000 / 60

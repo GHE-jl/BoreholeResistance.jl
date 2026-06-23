@@ -80,6 +80,12 @@ Colebrook-White equation within 1% for typical GHE flow conditions. Valid for la
     - `ϵ`: Pipe roughness [m]
 # Output
     - `f`: Friction factor [-]
+# Reference
+    - Mileikovskyi, V., & Tkachenko, T. (2021). Precise Explicit Approximations of the
+        Colebrook-White Equation for Engineering Systems. In Z. Blikharskyy (Ed.), Proceedings of 
+        EcoComfort 2020 (pp. 303–310). Springer International Publishing.
+        https://doi.org/10.1007/978-3-030-57340-9_37
+
 """
 function friction_factor_Tkachenko_Mileikovskyi(Re::Real, r::Real, ϵ::Real)
     if Re < eps()

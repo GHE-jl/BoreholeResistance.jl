@@ -125,16 +125,8 @@ pkg> add https://github.com/GeothermalJL/BoreholeResistance.jl
 
 ## Dependencies
 
-### Library
-
 No external dependencies. All required functions are implemented in pure Julia using only the
 standard library.
-
-### Scripts only
-
-| Package | Used in |
-|---------|---------|
-| [CairoMakie.jl](https://github.com/MakieOrg/Makie.jl) | All visualisation scripts |
 
 ## Integration with GroundHeatExchanger.jl
 
@@ -155,6 +147,10 @@ Rb = resistance_borehole_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf,
 
 ## References
 
+- Mileikovskyi, V., & Tkachenko, T. (2021). Precise Explicit Approximations of the
+  Colebrook-White Equation for Engineering Systems. In Z. Blikharskyy (Ed.), Proceedings of 
+  EcoComfort 2020 (pp. 303–310). Springer International Publishing.
+  https://doi.org/10.1007/978-3-030-57340-9_37
 - Hellström, G. (1991). Ground Heat Storage: Thermal Analyses of Duct Storage Systems.
   Lund University.
 - Javed, S., & Spitler, J. (2017). Accuracy of borehole thermal resistance calculation methods

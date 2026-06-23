@@ -7,7 +7,7 @@
 
 using BoreholeResistance
 
-# --- Parameters (typical single U-loop borehole) ---
+# Parameters (typical single U-loop borehole)
 H  = 100.0          # Borehole length [m]
 rb = 0.075          # Borehole radius [m]
 ro = 0.020          # Pipe outer radius [m]
@@ -27,7 +27,7 @@ cf = water_cp(T0)
 V_nom  = 15.0 / 1000 / 60         # 15 L/min in m³/s
 V̇_nom = V_nom / (π * ri^2)       # Mean fluid speed [m/s]
 
-# --- Point check at V = 15 L/min ---
+# Point check at V = 15 L/min
 println("=== Single U-loop — point check at V = 15 L/min ===")
 Re_nom = Reynolds(V̇_nom, ri, ρf, μf)
 Pr_nom = Prandtl(kf, cf, μf)
@@ -46,12 +46,13 @@ Rf_nom = resistance_fluid(V̇_nom, ri, kf, cf, ρf, μf, ϵ)
 # resistance_fluid: (V̇, ...) and (Nu, r, kf) overloads must agree
 @assert Rf_nom ≈ resistance_fluid(Nu_nom, ri, kf)  "resistance_fluid overloads must agree"
 
-println("  Re = $(round(Int, Re_nom)),  Pr = $(round(Pr_nom, digits=3)),  Nu = $(round(Nu_nom, digits=3))")
+println("  Re = $(round(Int, Re_nom)),  Pr = $(round(Pr_nom, digits=3)),
+    Nu = $(round(Nu_nom, digits=3))")
 println("  Rf = $(round(Rf_nom, digits=4)) mK/W")
 println("  Rp = $(round(Rp, digits=4)) mK/W  (constant)")
 println()
 
-# --- Rb, Ra, Rbe for order 0 and 1 ---
+# Rb, Ra, Rbe for order 0 and 1
 println("=== Rb, Ra, Rbe at V = 15 L/min ===")
 for order in [0, 1]
     Rb  = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
@@ -60,8 +61,10 @@ for order in [0, 1]
     Rg  = Rb - Rp - Rf_nom
 
     # Long-form overloads (auto-compute Rf/Rp from pipe geometry) must agree
-    @assert Rb ≈ resistance_borehole_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ; order=order)  "resistance_borehole_multipole overloads must agree"
-    @assert Ra ≈ resistance_total_internal_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ; order=order)  "resistance_total_internal_multipole overloads must agree"
+    @assert Rb ≈ resistance_borehole_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ;
+        order=order)  "resistance_borehole_multipole overloads must agree"
+    @assert Ra ≈ resistance_total_internal_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf,
+        μf, ϵ; order=order)  "resistance_total_internal_multipole overloads must agree"
 
     @assert Rp     > 0
     @assert Rf_nom > 0
@@ -69,7 +72,8 @@ for order in [0, 1]
     @assert Rb     > 0
     @assert Rbe   >= Rb  "Rbe must be ≥ Rb"
 
-    println("  order $order:  Rb = $(round(Rb, digits=4))  Ra = $(round(Ra, digits=4))  Rbe = $(round(Rbe, digits=4))  Rg = $(round(Rg, digits=4)) mK/W")
+    println("  order $order:  Rb = $(round(Rb, digits=4))  Ra = $(round(Ra, digits=4))  
+        Rbe = $(round(Rbe, digits=4))  Rg = $(round(Rg, digits=4)) mK/W")
 end
 println()
 
