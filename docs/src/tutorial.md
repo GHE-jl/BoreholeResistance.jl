@@ -67,14 +67,14 @@ The short form takes the pre-computed `Rp` and `Rf`. `order = 1` selects the fir
 multipole (recommended); `order = 0` is the line-source approximation.
 
 ```julia
-Rb = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; order = 1)
-Ra = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf; order = 1)
+Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; order = 1)
+Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf; order = 1)
 ```
 
 Equivalently, the **long form** computes `Rf` and `Rp` internally from geometry and flow:
 
 ```julia
-Rb = resistance_borehole_multipole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ; order = 1)
+Rb = resistance_ULoop_borehole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ; order = 1)
 ```
 
 The grout-only contribution is recovered as ``R_g = R_b - R_p - R_f``.
@@ -85,13 +85,13 @@ The grout-only contribution is recovered as ``R_g = R_b - R_p - R_f``.
 up-flowing legs. It needs the flow rate, the borehole length and the volumetric heat capacity:
 
 ```julia
-Rbe = resistance_borehole_effective(V, H, cf, ρf, Rb, Ra)
+Rbe = resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra)
 ```
 
 or, from geometry directly, the all-in-one form used in the [Quick start](@ref BoreholeResistance.jl):
 
 ```julia
-Rbe = resistance_borehole_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf; nLoop = 1)
+Rbe = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf; nLoop = 1)
 ```
 
 `Rbe ≥ Rb` always — short-circuiting can only degrade performance.
@@ -103,13 +103,13 @@ choose how the legs are paired with the `network` keyword (`"diagonal"`, the def
 `"adjacent"`):
 
 ```julia
-Rb = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop = 2, order = 1)
-Ra = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf;
+Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop = 2, order = 1)
+Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf;
                                          nLoop = 2, order = 1, network = "diagonal")
 ```
 
 !!! warning "Effective resistance is single-U only"
-    `resistance_borehole_effective` is derived for the single U-tube (`nLoop = 1`).
+    `resistance_ULoop_effective` is derived for the single U-tube (`nLoop = 1`).
     Use it with double-U resistances only as an approximation.
 
 ## 8. Annulus / coaxial helpers

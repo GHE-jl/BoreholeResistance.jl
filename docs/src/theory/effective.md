@@ -84,7 +84,7 @@ R_b^* = \tfrac{1}{2}\left(R_{b,\text{UBW}}^* + R_{b,\text{UHF}}^*\right).
 
 ## Overloads
 
-[`resistance_borehole_effective`](@ref) is available in three forms of increasing convenience:
+[`resistance_ULoop_effective`](@ref) is available in three forms of increasing convenience:
 
 1. from pre-computed ``R_b`` and ``R_a``;
 2. from ``R_p`` and ``R_f`` (computes ``R_b`` and ``R_a`` internally);
@@ -97,5 +97,5 @@ R_b^* = \tfrac{1}{2}\left(R_{b,\text{UBW}}^* + R_{b,\text{UHF}}^*\right).
 ## Function on this page
 
 ```@docs
-resistance_borehole_effective
+resistance_ULoop_effective
 ```

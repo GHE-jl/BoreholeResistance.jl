@@ -14,7 +14,7 @@ H, s, rb, ro, ri = 150.0, 0.05, 0.08, 0.022, 0.017
 ks, kg, kp = 3.0, 1.6, 0.4
 V = 30/6e4   # 30 L/min in m³/s
 
-Rb  = resistance_borehole_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf)
+Rb  = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf)
 ```
 
 ## Water thermophysical properties
@@ -62,10 +62,10 @@ resistance_pipe(ro, ri, kp)    # log(ro/ri) / (2π·kp)
 ### Borehole resistance — multipole method (Hellström 1991, Javed & Spitler 2017)
 ```julia
 # Short form: pass pre-computed Rp and Rf
-resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=1, order=1)
+resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop=1, order=1)
 
 # Long form: compute Rp/Rf internally from pipe geometry and flow
-resistance_borehole_multipole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ=0.0;
+resistance_ULoop_borehole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ=0.0;
     nLoop=1, order=1)
 ```
 
@@ -74,7 +74,7 @@ resistance_borehole_multipole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ
 
 ### Total internal resistance (for Rb* computation)
 ```julia
-resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf;
+resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf;
     nLoop=1, order=1, network="diagonal")
 # network="adjacent" for double U-tube with adjacent pipe pair connections
 ```
@@ -83,15 +83,54 @@ resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf;
 Accounts for axial thermal short-circuit along the borehole depth:
 ```julia
 # From pre-computed Rb and Ra
-resistance_borehole_effective(V, H, cf, ρf, Rb, Ra)
+resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra)
 
 # From Rp/Rf
-resistance_borehole_effective(V, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf; nLoop=1)
+resistance_ULoop_effective(V, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf; nLoop=1)
 
 # Full form: all geometry and fluid properties
-resistance_borehole_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ=0.0;
+resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ=0.0;
     nLoop=1)
 ```
+
+### Coaxial (concentric-tube) borehole — Lamarche (2021)
+
+For coaxial exchangers the borehole is described by two resistances instead of the U-tube
+multipole network: `R12` between the center pipe and the annulus (Eq. 1), and `R1` between the
+annulus fluid and the borehole wall (Eq. 2). By Eq. 8, `R1` is also the (steady) borehole
+resistance `Rb`.
+
+```julia
+# Two resistances (R1, R12) from convection coefficients (hin in the center pipe, hann in annulus)
+R1, R12 = resistance_coaxial(rii, rio, roi, roo, rb, kg, kpi, kpo, hin, hann)
+
+# Or computed internally from flow rate and fluid properties (Nusselt / Nusselt_annulus)
+R1, R12 = resistance_coaxial(V, rii, rio, roi, roo, rb, kg, kpi, kpo, kf, cf, ρf, μf, ϵ=0.0)
+```
+
+Radii: `rii`/`rio` inner pipe inner/outer, `roi`/`roo` outer pipe inner/outer, `rb` borehole.
+
+The effective resistance `Rb*` accounts for the axial short-circuit between center and annulus.
+The `model` keyword selects the closed form: `"UHF"` (uniform heat flux, Eq. 31 — recommended for
+coaxial), `"UBW"` (uniform wall temperature, Eq. 14), `"mean"`, or `"UHF_gradient"` (Eqs. 61/63 —
+for a linearly-varying far-field temperature, see caveats below). Both flow directions
+(center-in / annulus-in) give the same `Rb*` for `"UHF"`/`"UBW"`/`"mean"`.
+
+```julia
+# From pre-computed R1 and R12
+resistance_coaxial_effective(V, H, cf, ρf, R1, R12; model="UHF")
+
+# Full form: all geometry and fluid properties
+resistance_coaxial_effective(V, H, rii, rio, roi, roo, rb, kg, kpi, kpo, kf, cf, ρf, μf,
+    ϵ=0.0; model="UHF")
+```
+
+`"UHF_gradient"` needs no extra numeric input, but is only valid for the flow-direction/heat-mode
+pairing that is *unfavorable* for the far-field gradient's sign (e.g. heat injection with
+"annulus-in" when the far-field temperature increases with depth) — see the
+[`resistance_coaxial_effective`](https://github.com/GeothermalJL/BoreholeResistance.jl/blob/master/src/resistance_borehole.jl)
+docstring for the full applicability rule. It is a distinct closed form, not a generalization of
+`"UHF"`, and does not reduce to it in the absence of a gradient.
 
 ## Scripts
 
@@ -106,7 +145,7 @@ julia --project=script/ -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
 | `script_single_Uloop.jl` | Single U-tube: Re, Pr, Nu, Rf, Rp, Rb (order 0/1), Ra, Rb*, all overloads |
 | `script_double_Uloop.jl` | Double U-tube: Rb, Ra diagonal/adjacent (order 0/1), Rbe, all overloads |
 | `script_annulus.jl` | Friction factors CW vs TM, Nusselt pipe vs annulus, all overloads |
-| `script_coaxial.jl` | Coaxial GHE (placeholder — not yet implemented) |
+| `script_coaxial.jl` | Coaxial GHE: R1, R12, Rb* (UHF/UBW/mean) vs Lamarche (2021) Borehole 1 |
 
 ## Installation
 
@@ -140,7 +179,7 @@ cf = water_cp(T0)           # specific heat [J/kg·K]
 ρf = water_ρ(T0)            # density [kg/m³]
 Cf = cf * ρf                # volumetric specific heat [J/m³·K]
 
-Rb = resistance_borehole_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf)
+Rb = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf)
 
 # head_loss_Darcy_Weisbach is defined in GroundHeatExchanger.jl (hydraulic / pump sizing)
 ```

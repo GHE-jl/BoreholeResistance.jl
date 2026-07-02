@@ -12,15 +12,16 @@ include("utils.jl")
 
 # Fluid resistance exports
 export Reynolds, Prandtl, Nusselt, Nusselt_annulus,
-    friction_factor_Colebrook_White, friction_factor_Tkachenko_Mileikovskyi,
+    friction_factor_Colebrook_White, friction_factor_Tkachenko_Mileikovskyi, convection_coefficient,
     resistance_fluid
 
 # Pipe resistance exports
 export resistance_pipe
 
 # Borehole resistance exports
-export resistance_borehole_multipole, resistance_total_internal_multipole,
-    resistance_borehole_effective
+export resistance_ULoop_borehole, resistance_ULoop_total_internal,
+    resistance_ULoop_effective,
+    resistance_coaxial, resistance_coaxial_effective
 
 # Utility exports
 export water_ρ, water_cp, water_k, water_μ

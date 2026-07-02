@@ -99,7 +99,7 @@ R_a = \frac{1}{\pi k_g}\left[\beta + \ln\!\frac{(1+\theta_1^2)^{\sigma}}{\theta_
 ```
 
 with a first-order correction analogous to ``R_b``. See
-[`resistance_total_internal_multipole`](@ref).
+[`resistance_ULoop_total_internal`](@ref).
 
 ### Double-U pipe networks
 
@@ -116,6 +116,85 @@ keyword:
     network, or fall back to `order = 0`, for adjacent-pair double U-tubes until this is
     resolved.
 
+## Coaxial (concentric-tube) exchanger
+
+Coaxial boreholes do not use the multipole network. Following Lamarche (2021), the cross-section
+reduces to two resistances (implemented in
+[`resistance_coaxial`](@ref)):
+
+```math
+R_{12} = \frac{1}{h_{in}\,\pi d_{ii}}
+       + \frac{\ln(d_{io}/d_{ii})}{2\pi k_{p,in}}
+       + \frac{1}{h_{ann}\,\pi d_{io}},
+\qquad
+R_1 = \frac{1}{h_{ann}\,\pi d_{oi}}
+    + \frac{\ln(d_{oo}/d_{oi})}{2\pi k_{p,out}}
+    + \frac{\ln(d_b/d_{oo})}{2\pi k_g},
+```
+
+(Eqs. 1–2 of Lamarche, 2021), where ``R_{12}`` links the center pipe to the annulus and ``R_1``
+links the annulus fluid to the borehole wall. The convection coefficient in the center pipe uses
+[`Nusselt`](@ref); the annulus uses [`Nusselt_annulus`](@ref). By Eq. 8, the (steady) borehole
+resistance of a coaxial exchanger is simply ``R_b = R_1``.
+
+### Effective resistance ``R_b^*``
+
+With the groups (Eq. 7, ``\dot m c_f = V\rho_f c_f``)
+
+```math
+\gamma = \frac{H}{2\,\dot m c_f\,R_1}, \quad
+R_a = \frac{4 R_1 R_{12}}{4 R_1 + R_{12}}, \quad
+\xi = \sqrt{\frac{R_a}{4 R_1}}, \quad
+\eta = \frac{\gamma}{\xi},
+```
+
+the two closed forms exposed by [`resistance_coaxial_effective`](@ref) are
+
+```math
+R_b^* = R_1\,\eta\coth\eta \quad (\text{UBW, Eq. 14}),
+\qquad
+R_b^* = R_1\left(1 + \frac{R_a}{R_{12}}\frac{\eta^2}{3}\right) \quad (\text{UHF, Eq. 31}).
+```
+
+Both flow directions ("center-in" and "annulus-in") give the same ``R_b^*``. Lamarche (2021)
+recommends the uniform-heat-flux form (Eq. 31) as the better compromise for coaxial exchangers,
+which is the default `model = "UHF"`.
+
+### Linearly-varying far-field temperature (`"UHF_gradient"`)
+
+The models above assume a uniform far-field temperature. When it instead varies linearly with
+depth — a geothermal gradient in a deep borehole — Lamarche (2021) shows (Section 3) that a
+linearly-varying borehole-wall temperature is the physically consistent extension, but its closed
+form (Eq. 43) needs the *actual* wall-temperature slope and reference temperatures as extra
+inputs, breaking the borehole/ground decoupling that keeps `"UHF"`/`"UBW"`/`"mean"`
+self-contained. Section 4.1 instead proposes a much cheaper proxy: keep the borehole decoupled
+from the ground, but let the heat flux itself vary linearly along the borehole instead of being
+uniform (Eq. 58), with boundary conditions chosen so it vanishes at one end:
+
+```math
+\tilde q'(\tilde z) = 2(1-\tilde z) \quad \text{(heat injection, annulus-in)}, \qquad
+\tilde q'(\tilde z) = 2\tilde z \quad \text{(heat extraction, center-in)}.
+```
+
+Both cases integrate (Eqs. 60–63) to the same closed form, exposed as `model = "UHF_gradient"`:
+
+```math
+R_b^* = R_1\left(1 + \frac{H}{6\,\dot m c_f R_1} + \frac{H^2}{4\,(\dot m c_f)^2 R_1 R_{12}}\right)
+\quad (\text{Eqs. 61/63}).
+```
+
+It needs no numeric input beyond `"UHF"` (same `V`, `H`, `R_1`, `R_{12}`), but it is **not** a
+generalization of `"UHF"` — it is a fixed linear heat-flux shape, not a tunable gradient
+magnitude, so it does not reduce to Eq. 31 when there happens to be no gradient (Table 3 of
+Lamarche 2021 reports both values for the same borehole, and they differ: `0.0356` mK/W for
+`"UHF"` versus `0.0420`/`0.0494` mK/W for `"UHF_gradient"`). It is also only valid for the
+flow-direction/heat-mode pairing that Lamarche (2021) identifies as *unfavorable* for the
+gradient's sign — heat injection with "annulus-in" or heat extraction with "center-in" when the
+far-field temperature increases with depth (mirror the pairing for a negative gradient). For the
+*favorable* pairing, Lamarche (2021) found that plain `"UHF"` remains the better estimate; picking
+the right model for the situation is the caller's responsibility, since flow direction, heat mode
+and gradient sign are not arguments of [`resistance_coaxial_effective`](@ref).
+
 ## Recovering the grout-only resistance
 
 Since ``R_b`` includes the fluid and pipe contributions, the grout-only resistance is the
@@ -130,6 +209,8 @@ This is a useful sanity check — ``R_g`` must be positive.
 ## Functions on this page
 
 ```@docs
-resistance_borehole_multipole
-resistance_total_internal_multipole
+resistance_ULoop_borehole
+resistance_ULoop_total_internal
+resistance_coaxial
+resistance_coaxial_effective
 ```

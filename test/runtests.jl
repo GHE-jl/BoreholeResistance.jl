@@ -101,8 +101,8 @@ using BoreholeResistance
         @test Rf_nom > 0
 
         for order in [0, 1]
-            Rb = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
-            Ra = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
+            Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
+            Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
             Rg = Rb - Rp - Rf_nom
 
             # Positivity
@@ -111,31 +111,31 @@ using BoreholeResistance
             @test Rg > 0
 
             # Both function signatures must give identical results
-            @test Rb ≈ resistance_borehole_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
+            @test Rb ≈ resistance_ULoop_borehole(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
                 cf, ρf, μf, ϵ; order=order)
-            @test Ra ≈ resistance_total_internal_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
+            @test Ra ≈ resistance_ULoop_total_internal(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
                 cf, ρf, μf, ϵ; order=order)
         end
 
         # First-order must converge toward zeroth-order (within 20 % for this geometry)
-        Rb0 = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=0)
-        Rb1 = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=1)
+        Rb0 = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; order=0)
+        Rb1 = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; order=1)
         @test Rb0 ≈ Rb1 rtol=0.20
 
         # Effective borehole resistance — single U-loop uses V_nom as total system flow
-        Ra1  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=1)
-        Rbₑ  = resistance_borehole_effective(V_nom, H, cf, ρf, Rb1, Ra1)
+        Ra1  = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; order=1)
+        Rbₑ  = resistance_ULoop_effective(V_nom, H, cf, ρf, Rb1, Ra1)
         @test Rbₑ >= Rb1   # short-circuiting can only increase the effective resistance
 
-        # All three overloads of resistance_borehole_effective must agree
-        Rbₑ2 = resistance_borehole_effective(V_nom, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf_nom)
-        Rbₑ3 = resistance_borehole_effective(V_nom, H, s, rb, ro, ri, ks, kg, kp, kf,
+        # All three overloads of resistance_ULoop_effective must agree
+        Rbₑ2 = resistance_ULoop_effective(V_nom, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf_nom)
+        Rbₑ3 = resistance_ULoop_effective(V_nom, H, s, rb, ro, ri, ks, kg, kp, kf,
             cf, ρf, μf, ϵ)
         @test Rbₑ ≈ Rbₑ2
         @test Rbₑ ≈ Rbₑ3
 
         # Longer borehole → larger temperature gradient along legs → more short-circuiting
-        Rbₑ_short = resistance_borehole_effective(V_nom, 50.0, cf, ρf, Rb1, Ra1)
+        Rbₑ_short = resistance_ULoop_effective(V_nom, 50.0, cf, ρf, Rb1, Ra1)
         @test Rbₑ_short <= Rbₑ
     end
 
@@ -143,8 +143,8 @@ using BoreholeResistance
         V_total = 2 * V_nom   # 30 L/min total system flow
 
         for order in [0, 1]
-            Rb = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=order)
-            Ra = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2,
+            Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=order)
+            Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2,
                 order=order)
 
             # Positivity
@@ -153,39 +153,133 @@ using BoreholeResistance
 
             # Both function signatures must give identical results.
             # The long-form function receives V_nom (per-pipe flow) to compute the same Rf.
-            @test Rb ≈ resistance_borehole_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
+            @test Rb ≈ resistance_ULoop_borehole(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
                 cf, ρf, μf, ϵ; nLoop=2, order=order)
-            @test Ra ≈ resistance_total_internal_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
+            @test Ra ≈ resistance_ULoop_total_internal(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
                 cf, ρf, μf, ϵ; nLoop=2, order=order)
         end
 
         # First-order must converge toward zeroth-order
-        Rb0 = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=0)
-        Rb1 = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=1)
+        Rb0 = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=0)
+        Rb1 = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=1)
         @test Rb0 ≈ Rb1 rtol=0.20
 
         # Both diagonal and adjacent networks must give positive results
-        Ra_diag = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2,
+        Ra_diag = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2,
             order=1, network="diagonal")
-        Ra_adj  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2,
+        Ra_adj  = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2,
             order=1, network="adjacent")
         @test Ra_diag > 0
         @test Ra_adj  > 0
 
         # Effective resistance uses the total system flow (doubled) to get the correct
         # thermal capacity flow rate for the two-loop circuit
-        Ra1  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=1)
-        Rbₑ  = resistance_borehole_effective(V_total, H, cf, ρf, Rb1, Ra1)
+        Ra1  = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=1)
+        Rbₑ  = resistance_ULoop_effective(V_total, H, cf, ρf, Rb1, Ra1)
         @test Rbₑ >= Rb1
 
         # Medium overload (Rp and Rf provided, V is total flow) must agree with short-form
-        Rbₑ2 = resistance_borehole_effective(V_total, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf_nom;
+        Rbₑ2 = resistance_ULoop_effective(V_total, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf_nom;
             nLoop=2)
         @test Rbₑ ≈ Rbₑ2
 
         # Longer borehole → larger temperature gradient along legs → more short-circuiting
-        Rbₑ_short = resistance_borehole_effective(V_total, 50.0, cf, ρf, Rb1, Ra1)
+        Rbₑ_short = resistance_ULoop_effective(V_total, 50.0, cf, ρf, Rb1, Ra1)
         @test Rbₑ_short <= Rbₑ
+    end
+
+    # Coaxial exchanger — "Borehole 1" of Lamarche (2021), Table 1 (diameters → radii)
+    @testset "Coaxial GHE — Lamarche 2021, Borehole 1" begin
+        Hc  = 150.0
+        rbc = 0.1524 / 2
+        roo = 0.1143 / 2
+        roi = 0.0973 / 2
+        rio = 0.0603 / 2
+        rii = 0.0494 / 2
+        kpi, kpo, kgc = 0.4, 0.4, 1.7
+        ϵc  = 5e-6
+        T0c = 10.0
+        kfc, cfc, ρfc, μfc = water_k(T0c), water_cp(T0c), water_ρ(T0c), water_μ(T0c)
+        ṁc  = 3.25
+        Vc  = ṁc / ρfc
+
+        # Published resistances from the paper's convection coefficients (Section 2.3):
+        # R'12 = 0.084 and R'1 = 0.092 mK/W (hin = 5170, hann = 2150 W/m²K)
+        hin_paper, hann_paper = 5170.0, 2150.0
+        R1p, R12p = resistance_coaxial(rii, rio, roi, roo, rbc, kgc, kpi, kpo, hin_paper,
+            hann_paper)
+        @test R12p ≈ 0.084 atol = 0.002   # Eq. 1 of Lamarche 2021
+        @test R1p  ≈ 0.092 atol = 0.002   # Eq. 2 of Lamarche 2021
+
+        # Effective resistances match Table 2 (Rb* ≈ 0.0915 UHF, 0.0916 UBW). Section 4 of the
+        # paper neglects the convection resistances (h → ∞), giving R'1 = 0.091, R'12 = 0.0798.
+        R1n, R12n = resistance_coaxial(rii, rio, roi, roo, rbc, kgc, kpi, kpo, 1e12, 1e12)
+        @test R1n  ≈ 0.091  atol = 0.002
+        @test R12n ≈ 0.0798 atol = 0.002
+        Rbe_UHF = resistance_coaxial_effective(Vc, Hc, cfc, ρfc, R1n, R12n; model="UHF")
+        Rbe_UBW = resistance_coaxial_effective(Vc, Hc, cfc, ρfc, R1n, R12n; model="UBW")
+        @test Rbe_UHF ≈ 0.0915 atol = 0.001   # Eq. 31
+        @test Rbe_UBW ≈ 0.0916 atol = 0.001   # Eq. 14
+        # Mean model lies between the two
+        Rbe_mean = resistance_coaxial_effective(Vc, Hc, cfc, ρfc, R1n, R12n; model="mean")
+        @test min(Rbe_UHF, Rbe_UBW) <= Rbe_mean <= max(Rbe_UHF, Rbe_UBW)
+
+        # Short-circuiting can only increase the effective resistance beyond Rb = R1
+        @test Rbe_UHF >= R1n
+        @test Rbe_UBW >= R1n
+
+        # Built-in Nusselt correlations give positive, physically sensible resistances
+        R1, R12 = resistance_coaxial(Vc, rii, rio, roi, roo, rbc, kgc, kpi, kpo, kfc, cfc, ρfc,
+            μfc, ϵc)
+        @test R1  > 0
+        @test R12 > 0
+
+        # Both overloads of the effective resistance must agree
+        Rbe_short = resistance_coaxial_effective(Vc, Hc, cfc, ρfc, R1, R12; model="UHF")
+        Rbe_full  = resistance_coaxial_effective(Vc, Hc, rii, rio, roi, roo, rbc, kgc,
+            kpi, kpo, kfc, cfc, ρfc, μfc, ϵc; model="UHF")
+        @test Rbe_short ≈ Rbe_full
+
+        # Longer borehole / lower flow → more short-circuiting → larger Rb*
+        Rbe_long  = resistance_coaxial_effective(Vc, 300.0, cfc, ρfc, R1n, R12n)
+        @test Rbe_long >= Rbe_UHF
+        Rbe_slow  = resistance_coaxial_effective(Vc / 4, Hc, cfc, ρfc, R1n, R12n)
+        @test Rbe_slow >= Rbe_UHF
+
+        # Unknown model must error
+        @test_throws ErrorException resistance_coaxial_effective(Vc, Hc, cfc, ρfc, R1n,
+            R12n; model="foo")
+    end
+
+    # "UHF_gradient" model (Eqs. 58-63) — Borehole 3b of Lamarche (2021), Table 3
+    @testset "Coaxial GHE — Lamarche 2021, Borehole 3b, UHF_gradient" begin
+        Hg  = 200.0
+        R1g, R12g = 0.0209, 0.0798        # Table 2 (Borehole 3b) and Section 4 (Borehole 3)
+        T0g = 10.0
+        cfg, ρfg = water_cp(T0g), water_ρ(T0g)
+        ṁg  = 0.8
+        Vg  = ṁg / ρfg
+
+        Rbe_UHF  = resistance_coaxial_effective(Vg, Hg, cfg, ρfg, R1g, R12g; model="UHF")
+        Rbe_grad = resistance_coaxial_effective(Vg, Hg, cfg, ρfg, R1g, R12g; model="UHF_gradient")
+        @test Rbe_UHF  ≈ 0.0356 atol = 0.001   # Eq. 31, gradient-independent by construction
+        @test Rbe_grad ≈ 0.0420 atol = 0.001   # Eq. 61/63, Table 3 case 1 (heat injection, annulus-in)
+
+        # The gradient correction amplifies the short-circuit beyond the plain UHF estimate
+        @test Rbe_grad > Rbe_UHF > R1g
+
+        # It is a distinct closed form, not a generalization of UHF (does not collapse onto it)
+        @test !isapprox(Rbe_grad, Rbe_UHF; rtol=0.05)
+
+        # Full-geometry overload must agree with the short-form overload (same R1, R12)
+        rbc3, roo3, roi3, rio3, rii3 = 0.1524 / 2, 0.1143 / 2, 0.0973 / 2, 0.0603 / 2, 0.0494 / 2
+        R1full, R12full = resistance_coaxial(Vg, rii3, rio3, roi3, roo3, rbc3, 2.5, 0.4, 10.0,
+            water_k(T0g), cfg, ρfg, water_μ(T0g), 5e-6)
+        Rbe_grad_short = resistance_coaxial_effective(Vg, Hg, cfg, ρfg, R1full, R12full;
+            model="UHF_gradient")
+        Rbe_grad_full  = resistance_coaxial_effective(Vg, Hg, rii3, rio3, roi3, roo3, rbc3, 2.5,
+            0.4, 10.0, water_k(T0g), cfg, ρfg, water_μ(T0g), 5e-6; model="UHF_gradient")
+        @test Rbe_grad_short ≈ Rbe_grad_full
     end
 
 end

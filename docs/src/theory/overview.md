@@ -108,6 +108,6 @@ fold in the axial fluid-temperature variation along ``H``.
 | Friction factor | ``f`` | [`friction_factor_Colebrook_White`](@ref) | [Fluid](@ref Fluid-convective-resistance) |
 | Fluid convective resistance | ``R_f`` | [`resistance_fluid`](@ref) | [Fluid](@ref Fluid-convective-resistance) |
 | Pipe conductive resistance | ``R_p`` | [`resistance_pipe`](@ref) | [Pipe](@ref Pipe-conductive-resistance) |
-| Borehole resistance | ``R_b`` | [`resistance_borehole_multipole`](@ref) | [Borehole](@ref Borehole-(grout)-resistance) |
-| Total internal resistance | ``R_a`` | [`resistance_total_internal_multipole`](@ref) | [Borehole](@ref Borehole-(grout)-resistance) |
-| Effective resistance | ``R_b^*`` | [`resistance_borehole_effective`](@ref) | [Effective](@ref Effective-resistance) |
+| Borehole resistance | ``R_b`` | [`resistance_ULoop_borehole`](@ref) | [Borehole](@ref Borehole-(grout)-resistance) |
+| Total internal resistance | ``R_a`` | [`resistance_ULoop_total_internal`](@ref) | [Borehole](@ref Borehole-(grout)-resistance) |
+| Effective resistance | ``R_b^*`` | [`resistance_ULoop_effective`](@ref) | [Effective](@ref Effective-resistance) |

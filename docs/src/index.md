@@ -63,7 +63,7 @@ ks, kg, kp       = 3.0, 1.6, 0.4
 V = 30 / 6e4    # 30 L/min expressed in m³/s
 
 # Effective borehole resistance [m·K/W]
-Rb = resistance_borehole_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf)
+Rb = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf)
 ```
 
 ## Manual outline

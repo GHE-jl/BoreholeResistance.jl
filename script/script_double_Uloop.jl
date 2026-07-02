@@ -1,7 +1,7 @@
 # Validation of thermal resistance functions for a double U-loop ground heat exchanger.
-# Covers: resistance_borehole_multipole (both overloads, nLoop=2, order 0/1),
-# resistance_total_internal_multipole (both overloads, diagonal and adjacent networks),
-# resistance_borehole_effective, and single-vs-double Rb comparison.
+# Covers: resistance_ULoop_borehole (both overloads, nLoop=2, order 0/1),
+# resistance_ULoop_total_internal (both overloads, diagonal and adjacent networks),
+# resistance_ULoop_effective, and single-vs-double Rb comparison.
 # Run from package root: julia --project=script/ script/script_double_Uloop.jl
 
 using BoreholeResistance
@@ -35,17 +35,17 @@ println("  Rf = $(round(Rf, digits=4)) mK/W,  Rp = $(round(Rp, digits=4)) mK/W")
 println()
 
 for order in [0, 1]
-    Rb      = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=2, order=order)
-    Ra_diag = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf;
+    Rb      = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop=2, order=order)
+    Ra_diag = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf;
                   nLoop=2, order=order, network="diagonal")
-    Ra_adj  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf;
+    Ra_adj  = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf;
                   nLoop=2, order=order, network="adjacent")
 
     # Long-form overloads must agree with short-form
-    @assert Rb ≈ resistance_borehole_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ;
-        nLoop=2, order=order)  "resistance_borehole_multipole overloads must agree (order $order)"
-    @assert Ra_diag ≈ resistance_total_internal_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf,
-        ρf, μf, ϵ; nLoop=2, order=order, network="diagonal")  "resistance_total_internal_multipole
+    @assert Rb ≈ resistance_ULoop_borehole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ;
+        nLoop=2, order=order)  "resistance_ULoop_borehole overloads must agree (order $order)"
+    @assert Ra_diag ≈ resistance_ULoop_total_internal(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf,
+        ρf, μf, ϵ; nLoop=2, order=order, network="diagonal")  "resistance_ULoop_total_internal
         overloads must agree"
 
     @assert Rb > 0
@@ -64,10 +64,10 @@ end
 
 # --- Rbe for double U-loop (diagonal, order 1) ---
 println("=== Rbe for double U-loop (order 1, diagonal) ===")
-Rb_d  = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=2, order=1)
-Ra_d  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf;
+Rb_d  = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop=2, order=1)
+Ra_d  = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf;
             nLoop=2, order=1, network="diagonal")
-Rbe_d = resistance_borehole_effective(V_nom, H, cf, ρf, Rb_d, Ra_d)
+Rbe_d = resistance_ULoop_effective(V_nom, H, cf, ρf, Rb_d, Ra_d)
 @assert Rbe_d >= Rb_d  "Rbe must be ≥ Rb"
 println("  Rb = $(round(Rb_d, digits=4)),  Ra = $(round(Ra_d, digits=4)),
     Rbe = $(round(Rbe_d, digits=4)) mK/W")
@@ -75,8 +75,8 @@ println()
 
 # --- Single vs double comparison (order 1) ---
 println("=== Single vs double U-loop comparison (order 1) ===")
-Rb1 = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=1, order=1)
-Rb2 = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=2, order=1)
+Rb1 = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop=1, order=1)
+Rb2 = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop=2, order=1)
 println("  Rb single = $(round(Rb1, digits=4)) mK/W")
 println("  Rb double = $(round(Rb2, digits=4)) mK/W")
 @assert Rb1 > 0 && Rb2 > 0
@@ -92,8 +92,8 @@ for Q_Lmin in [5.0, 10.0, 15.0, 20.0, 30.0, 50.0, 80.0, 120.0]
     V̇   = V / (π * ri^2)
     Re   = Reynolds(V̇, ri, ρf, μf)
     Rf_i = resistance_fluid(V̇, ri, kf, cf, ρf, μf, ϵ)
-    Rb   = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_i; nLoop=2, order=1)
-    Ra   = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_i;
+    Rb   = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_i; nLoop=2, order=1)
+    Ra   = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_i;
                nLoop=2, order=1, network="diagonal")
     println(rpad(string(round(Q_Lmin, digits=1)), 12), " ", rpad(string(round(Int, Re)), 8), " ",
             rpad(string(round(Rf_i, digits=4)), 8), " ", rpad(string(round(Rb, digits=4)), 8), " ",

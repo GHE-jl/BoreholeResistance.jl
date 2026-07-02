@@ -117,9 +117,12 @@ h = \frac{Nu\,k_f}{2r}, \qquad
 R_f = \frac{1}{2\pi r\, h} = \frac{1}{\pi\,Nu\,k_f}.
 ```
 
-These are Eqs. 2.32 and 5.6 of Lamarche (2023). The resistance is **per pipe**; the multipole
-formulas account for the number of pipes in the borehole. [`resistance_fluid`](@ref) accepts
-either a pre-computed ``Nu`` or the raw flow speed and properties.
+These are Eqs. 2.32 and 5.6 of Lamarche (2023). [`convection_coefficient`](@ref) computes ``h``
+alone (either from a pre-computed ``Nu`` or the raw flow speed and properties) — this is what
+[`resistance_coaxial`](@ref) uses for its center-pipe and annulus convection coefficients. The
+resistance is **per pipe**; the multipole formulas account for the number of pipes in the
+borehole. [`resistance_fluid`](@ref) accepts either a pre-computed ``Nu`` or the raw flow speed
+and properties.
 
 ## Functions on this page
 
@@ -130,5 +133,6 @@ friction_factor_Colebrook_White
 friction_factor_Tkachenko_Mileikovskyi
 Nusselt
 Nusselt_annulus
+convection_coefficient
 resistance_fluid
 ```

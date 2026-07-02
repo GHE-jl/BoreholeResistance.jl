@@ -1,8 +1,8 @@
 # Validation of thermal resistance functions for a single U-loop ground heat exchanger.
 # Covers: Reynolds, Prandtl (both overloads), Nusselt (both overloads), resistance_fluid
-# (both overloads), resistance_pipe, resistance_borehole_multipole (both overloads, order 0/1),
-# resistance_total_internal_multipole (both overloads, order 0/1), and
-# resistance_borehole_effective (all three overloads). Flow-rate sweep included.
+# (both overloads), resistance_pipe, resistance_ULoop_borehole (both overloads, order 0/1),
+# resistance_ULoop_total_internal (both overloads, order 0/1), and
+# resistance_ULoop_effective (all three overloads). Flow-rate sweep included.
 # Run from package root: julia --project=script/ script/script_single_Uloop.jl
 
 using BoreholeResistance
@@ -55,16 +55,16 @@ println()
 # Rb, Ra, Rbe for order 0 and 1
 println("=== Rb, Ra, Rbe at V = 15 L/min ===")
 for order in [0, 1]
-    Rb  = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
-    Ra  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
-    Rbe = resistance_borehole_effective(V_nom, H, cf, ρf, Rb, Ra)
+    Rb  = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
+    Ra  = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
+    Rbe = resistance_ULoop_effective(V_nom, H, cf, ρf, Rb, Ra)
     Rg  = Rb - Rp - Rf_nom
 
     # Long-form overloads (auto-compute Rf/Rp from pipe geometry) must agree
-    @assert Rb ≈ resistance_borehole_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ;
-        order=order)  "resistance_borehole_multipole overloads must agree"
-    @assert Ra ≈ resistance_total_internal_multipole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf,
-        μf, ϵ; order=order)  "resistance_total_internal_multipole overloads must agree"
+    @assert Rb ≈ resistance_ULoop_borehole(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ;
+        order=order)  "resistance_ULoop_borehole overloads must agree"
+    @assert Ra ≈ resistance_ULoop_total_internal(V_nom, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf,
+        μf, ϵ; order=order)  "resistance_ULoop_total_internal overloads must agree"
 
     @assert Rp     > 0
     @assert Rf_nom > 0
@@ -77,14 +77,14 @@ for order in [0, 1]
 end
 println()
 
-# resistance_borehole_effective: all three overloads must agree (order 1)
-Rb1  = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=1)
-Ra1  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf_nom; order=1)
-Rbe1 = resistance_borehole_effective(V_nom, H, cf, ρf, Rb1, Ra1)
-Rbe2 = resistance_borehole_effective(V_nom, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf_nom)
-Rbe3 = resistance_borehole_effective(V_nom, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ)
-@assert Rbe1 ≈ Rbe2  "resistance_borehole_effective overloads 1 and 2 must agree"
-@assert Rbe1 ≈ Rbe3  "resistance_borehole_effective overloads 1 and 3 must agree"
+# resistance_ULoop_effective: all three overloads must agree (order 1)
+Rb1  = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; order=1)
+Ra1  = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; order=1)
+Rbe1 = resistance_ULoop_effective(V_nom, H, cf, ρf, Rb1, Ra1)
+Rbe2 = resistance_ULoop_effective(V_nom, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf_nom)
+Rbe3 = resistance_ULoop_effective(V_nom, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ)
+@assert Rbe1 ≈ Rbe2  "resistance_ULoop_effective overloads 1 and 2 must agree"
+@assert Rbe1 ≈ Rbe3  "resistance_ULoop_effective overloads 1 and 3 must agree"
 
 # --- Flow-rate sweep ---
 println("=== Flow-rate sweep (single U-loop, order 1) ===")
@@ -95,9 +95,9 @@ for Q_Lmin in [5.0, 10.0, 15.0, 20.0, 30.0, 50.0, 80.0, 120.0]
     V̇  = V / (π * ri^2)
     Re  = Reynolds(V̇, ri, ρf, μf)
     Rf  = resistance_fluid(V̇, ri, kf, cf, ρf, μf, ϵ)
-    Rb  = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; order=1)
-    Ra  = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf; order=1)
-    Rbe = resistance_borehole_effective(V, H, cf, ρf, Rb, Ra)
+    Rb  = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; order=1)
+    Ra  = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf; order=1)
+    Rbe = resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra)
     Rg  = Rb - Rp - Rf
     println(rpad(string(round(Q_Lmin, digits=1)), 12), " ", rpad(string(round(Int, Re)), 8), " ",
             rpad(string(round(Rf, digits=4)), 8), " ", rpad(string(round(Rp, digits=4)), 8), " ",

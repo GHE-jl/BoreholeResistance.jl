@@ -1,7 +1,7 @@
 
 """
-    resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf, nLoop=1, order=1)
-    resistance_borehole_multipole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ=0.0,
+    resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf, nLoop=1, order=1)
+    resistance_ULoop_borehole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ=0.0,
         nLoop=1, order=1)
 
 Function that computes the thermal borehole resistance of a ground heat exchanger based on the
@@ -39,7 +39,7 @@ Note: To obtain only the grout thermal resistance, set `Rp` and `Rf` as 0.0.
         Technology for the Built Environment, 25(8), 980–992.
         https://doi.org/10.1080/23744731.2019.1620565
 """
-function resistance_borehole_multipole(s::Real, rb::Real, ro::Real, ks::Real, kg::Real,
+function resistance_ULoop_borehole(s::Real, rb::Real, ro::Real, ks::Real, kg::Real,
     Rp::Real, Rf::Real; nLoop::Int=1, order::Int=1)
     # Initial parameters
     Rₚ = Rp + Rf                                    # Pipe and fluid resistance
@@ -88,7 +88,7 @@ function resistance_borehole_multipole(s::Real, rb::Real, ro::Real, ks::Real, kg
 
     return Rb
 end
-function resistance_borehole_multipole(V::Real, s::Real, rb::Real, ro::Real, ri::Real, ks::Real,
+function resistance_ULoop_borehole(V::Real, s::Real, rb::Real, ro::Real, ri::Real, ks::Real,
     kg::Real, kp::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=0.0;
     nLoop::Int=1, order::Int=1)
     # Compute fluid and pipe resistances
@@ -96,13 +96,13 @@ function resistance_borehole_multipole(V::Real, s::Real, rb::Real, ro::Real, ri:
     Rp = resistance_pipe(ro, ri, kp)
 
     # Compute Rb with the first-order multipole method
-    return resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop, order=order)
+    return resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop, order=order)
 end
 
 """
-    resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf, nLoop=1, order=1,
+    resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf, nLoop=1, order=1,
         network="diagonal")
-    resistance_total_internal_multipole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ=0.0,
+    resistance_ULoop_total_internal(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ=0.0,
         nLoop=1, order=1; network="diagonal")
 
 Computes the zeroth- or first-order multipole method for the total internal resistance (Eq. 25 or 26
@@ -141,7 +141,7 @@ or Rbₑ).
         Technology for the Built Environment, 25(8), 980–992.
         https://doi.org/10.1080/23744731.2019.1620565
 """
-function resistance_total_internal_multipole(s::Real, rb::Real, ro::Real, ks::Real, kg::Real,
+function resistance_ULoop_total_internal(s::Real, rb::Real, ro::Real, ks::Real, kg::Real,
     Rp::Real, Rf::Real; nLoop::Int=1, order::Int=1, network::String="diagonal")
     # Initial parameters
     Rₚ = Rp + Rf                                    # Pipe and fluid resistance
@@ -215,7 +215,7 @@ function resistance_total_internal_multipole(s::Real, rb::Real, ro::Real, ks::Re
     end
     return Ra
 end
-function resistance_total_internal_multipole(V::Real, s::Real, rb::Real, ro::Real, ri::Real,
+function resistance_ULoop_total_internal(V::Real, s::Real, rb::Real, ro::Real, ri::Real,
     ks::Real, kg::Real, kp::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=0.0;
     nLoop::Int=1, order::Int=1, network::String="diagonal")
     # Compute fluid and pipe resistances
@@ -223,14 +223,14 @@ function resistance_total_internal_multipole(V::Real, s::Real, rb::Real, ro::Rea
     Rp = resistance_pipe(ro, ri, kp)
 
     # Compute Ra with the first-order multipole method
-    return resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop, order=order,
+    return resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop, order=order,
         network=network)
 end
 
 """
-    resistance_borehole_effective(V, H, cf, ρf, Rb, Ra)
-    resistance_borehole_effective(V, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf, nLoop=1)
-    resistance_borehole_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, nLoop=1)
+    resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra)
+    resistance_ULoop_effective(V, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf, nLoop=1)
+    resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, nLoop=1)
 
 Function that computes the effective thermal borehole resistance (also named Rb*). Effective Rb
 allows considering the thermal short-circuiting along the borehole. Two types of boundary 
@@ -265,7 +265,7 @@ borehole, `nLoop = 1`).
         Rees (Ed.), Advances in Ground-Source Heat Pump Systems (pp. 63–95). Woodhead Publishing. 
         https://doi.org/10.1016/B978-0-08-100311-4.00003-0
 """
-function resistance_borehole_effective(V::Real, H::Real, cf::Real, ρf::Real, Rb::Real, Ra::Real)
+function resistance_ULoop_effective(V::Real, H::Real, cf::Real, ρf::Real, Rb::Real, Ra::Real)
     # UBW - See Eq. 3.68-3.70 of Javed et Spitler (2016)
     R1b = 2 * Rb                                    # Eq. 3.12
     R12 = (2 * Ra * R1b) / (2 * R1b - Ra)           # Eq. 3.14
@@ -283,16 +283,16 @@ function resistance_borehole_effective(V::Real, H::Real, cf::Real, ρf::Real, Rb
     # Final calculation of the effective borehole thermal resistance
     return 0.5 * (Rbₑ1 + Rbₑ2)
 end
-function resistance_borehole_effective(V::Real, H::Real, s::Real, rb::Real, ro::Real, ks::Real,
+function resistance_ULoop_effective(V::Real, H::Real, s::Real, rb::Real, ro::Real, ks::Real,
     kg::Real, cf::Real, ρf::Real, Rp::Real, Rf::Real; nLoop::Int=1)
     # Compute Rb and Ra with the first-order multipole methods
-        Rb = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
-        Ra = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
+        Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
+        Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
 
     # Compute Rbₑ
-    return resistance_borehole_effective(V, H, cf, ρf, Rb, Ra)
+    return resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra)
 end
-function resistance_borehole_effective(V::Real, H::Real, s::Real, rb::Real, ro::Real, ri::Real,
+function resistance_ULoop_effective(V::Real, H::Real, s::Real, rb::Real, ro::Real, ri::Real,
     ks::Real, kg::Real, kp::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=0.0;
     nLoop::Int=1)
     # Compute fluid and pipe resistances
@@ -300,11 +300,147 @@ function resistance_borehole_effective(V::Real, H::Real, s::Real, rb::Real, ro::
     Rp = resistance_pipe(ro, ri, kp)
 
     # Compute Rb and Ra with the first-order multipole method
-    Rb = resistance_borehole_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
-    Ra = resistance_total_internal_multipole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
+    Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
+    Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
 
     # Compute Rbₑ
-    return resistance_borehole_effective(V, H, cf, ρf, Rb, Ra)
+    return resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra)
 end
 
-#TODO: Implement coaxial borehole heat exchanger configuration
+"""
+    resistance_coaxial(rii, rio, roi, roo, rb, kg, kpi, kpo, hin, hann)
+    resistance_coaxial(V, rii, rio, roi, roo, rb, kg, kpi, kpo, kf, cf, ρf, μf, ϵ=0.0)
+
+Computes the two thermal resistances of the resistance network of a coaxial (concentric-tube)
+ground heat exchanger, following the model of Lamarche (2021):
+- `R12`: internal resistance between the center pipe and the annulus (Eq. 1);
+- `R1` : resistance between the annulus fluid and the borehole wall (Eq. 2).
+The center pipe carries the fluid inside the inner pipe, while the annulus is the region between
+the inner pipe outer wall and the outer pipe inner wall. Following Eq. 8 of Lamarche (2021), `R1`
+is also the (steady) borehole resistance `Rb` of a coaxial exchanger. Both flow directions
+("center-in" and "annulus-in") share the same `R1`/`R12` network.
+# Arguments
+    - `V`: Fluid flow rate in the exchanger [m³/s]
+    - `rii`: Inner pipe inner radius [m]
+    - `rio`: Inner pipe outer radius [m]
+    - `roi`: Outer pipe inner radius [m]
+    - `roo`: Outer pipe outer radius [m]
+    - `rb`: Borehole radius (`rb > roo`, includes grout thickness) [m]
+    - `kg`: Grout thermal conductivity (if present) [W/mK]
+    - `kpi`: Inner pipe thermal conductivity [W/mK]
+    - `kpo`: Outer pipe thermal conductivity [W/mK]
+    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
+    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
+    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
+    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_μ(T)`)
+    - `ϵ`: Pipe roughness [m] (default 0.0)
+    - `hin`: Convection coefficient inside the inner (center) pipe [W/m²K]
+    - `hann`: Convection coefficient in the annulus region [W/m²K]
+# Output
+    - `R1`: Annulus-to-borehole-wall resistance (= coaxial borehole resistance `Rb`) [mK/W]
+    - `R12`: Center-to-annulus internal resistance [mK/W]
+# Reference
+    - Lamarche, L. (2021). Analytic models and effective resistances for coaxial ground heat
+        exchangers. Geothermics, 97, 102224. https://doi.org/10.1016/j.geothermics.2021.102224
+"""
+function resistance_coaxial(rii::Real, rio::Real, roi::Real, roo::Real, rb::Real, kg::Real,
+    kpi::Real, kpo::Real, hin::Real, hann::Real)
+    # Center-to-annulus internal resistance (Eq. 1 of Lamarche 2021):
+    # convection inside inner pipe + inner pipe wall conduction + annulus convection (inner face)
+    R12 = 1 / (hin * 2 * π * rii) + resistance_pipe(rio, rii, kpi) + 1 / (hann * 2 * π * rio)
+
+    # Annulus-to-borehole-wall resistance (Eq. 2 of Lamarche 2021):
+    # annulus convection (outer face) + outer pipe wall conduction + grout conduction
+    R1 = 1 / (hann * 2 * π * roi) + resistance_pipe(roo, roi, kpo) + resistance_pipe(rb, roo, kg)
+
+    return R1, R12
+end
+function resistance_coaxial(V::Real, rii::Real, rio::Real, roi::Real, roo::Real, rb::Real,
+    kg::Real, kpi::Real, kpo::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=0.0)
+    # Center pipe convection coefficient (circular pipe, hydraulic diameter = 2·rii)
+    V̇in = V / (π * rii^2)                        # Mean fluid speed in the center pipe [m/s]
+    Nu_in = Nusselt(V̇in, rii, kf, cf, ρf, μf, ϵ)
+    hin = convection_coefficient(Nu_in, rii, kf)
+
+    # Annulus convection coefficient (hydraulic diameter Dₕ = 2·(roi - rio))
+    V̇ann = V / (π * (roi^2 - rio^2))             # Mean fluid speed in the annulus [m/s]
+    Nu_ann = Nusselt_annulus(V̇ann, roi, rio, kf, cf, ρf, μf, ϵ, ϵ)
+    hann = convection_coefficient(Nu_ann, roi - rio, kf)  # Same h applied to both annulus faces
+
+    return resistance_coaxial(rii, rio, roi, roo, rb, kg, kpi, kpo, hin, hann)
+end
+
+"""
+    resistance_coaxial_effective(V, H, cf, ρf, R1, R12; model="UHF")
+    resistance_coaxial_effective(V, H, rii, rio, roi, roo, rb, kg, kpi, kpo, kf, cf, ρf,
+        μf, ϵ=0.0; model="UHF")
+
+Computes the effective borehole thermal resistance (`Rb*`) of a coaxial ground heat exchanger,
+accounting for the axial thermal short-circuit between the center pipe and the annulus, following
+Lamarche (2021). Four closed-form models are available through the `model` keyword:
+- `"UHF"` (uniform heat flux, Eq. 31) — the recommended compromise for coaxial exchangers, valid
+    for a uniform far-field temperature;
+- `"UBW"` (uniform borehole wall temperature, Eq. 14) - not as accurate as `"UHF"`;
+- `"mean"` — the average of both, matching the convention of `resistance_ULoop_effective`;
+- `"UHF_gradient"` (linearly-varying heat flux, Eqs. 58-63) — refines `"UHF"` when the far-field
+    temperature itself varies linearly with depth (e.g. a geothermal gradient).
+Both flow configurations ("center-in" and "annulus-in") yield the same effective resistance under
+the `"UHF"`/`"UBW"`/`"mean"` steady-flux assumptions (Section 2.2 of Lamarche 2021); `"UHF_gradient"`
+is the exception, by construction (its whole point is to distinguish the two flow directions under
+a gradient).
+# Arguments
+    - `V`: Fluid flow rate in the exchanger [m³/s]
+    - `H`: Borehole length [m]
+    - `rii`: Inner pipe inner radius [m]
+    - `rio`: Inner pipe outer radius [m]
+    - `roi`: Outer pipe inner radius [m]
+    - `roo`: Outer pipe outer radius [m]
+    - `rb`: Borehole radius (`rb > roo`, includes grout thickness) [m]
+    - `kg`: Grout thermal conductivity (if present) [W/mK]
+    - `kpi`: Inner pipe thermal conductivity [W/mK]
+    - `kpo`: Outer pipe thermal conductivity [W/mK]
+    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
+    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
+    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
+    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_μ(T)`)
+    - `ϵ`: Pipe roughness [m] (default 0.0)
+    - `R1`: Annulus-to-borehole-wall resistance (coaxial `Rb`) [mK/W]
+    - `R12`: Center-to-annulus internal resistance [mK/W]
+    - `model`: Effective resistance model, `"UHF"`, `"UBW"`, `"mean"` or `"UHF_gradient"`
+        (default `"UHF"`)
+# Output
+    - `Rbₑ`: Effective borehole thermal resistance [mK/W]
+# Reference
+    - Lamarche, L. (2021). Analytic models and effective resistances for coaxial ground heat
+        exchangers. Geothermics, 97, 102224. https://doi.org/10.1016/j.geothermics.2021.102224
+"""
+function resistance_coaxial_effective(V::Real, H::Real, cf::Real, ρf::Real, R1::Real,
+    R12::Real; model::String="UHF")
+    # Dimensionless groups (Eq. 7 of Lamarche 2021)
+    γ = H / (2 * ṁcf * R1)
+    Ra = 4 * R1 * R12 / (4 * R1 + R12)
+    ξ = sqrt(Ra / (4 * R1))
+    η = γ / ξ
+
+    if model == "UBW"                   # Uniform borehole wall temperature (Eq. 14)
+        return R1 * η * coth(η)
+    elseif model == "UHF"               # Uniform heat flux (Eq. 31)
+        return R1 * (1 + (Ra / R12) * η^2 / 3)
+    elseif model == "mean"              # Average of both models
+        return 0.5 * (R1 * η * coth(η) + R1 * (1 + (Ra / R12) * η^2 / 3))
+    elseif model == "UHF_gradient"      # Linear heat flux under a geothermal gradient (Eqs. 58-63)
+        return R1 * (1 + H / (6 * V * ρf * cf   * R1) + H^2 / (4 * (V * ρf * cf  )^2 * R1 * R12))
+    else
+        error("Only `UHF`, `UBW`, `mean` and `UHF_gradient` models are implemented for coaxial " *
+            "exchangers.")
+    end
+end
+function resistance_coaxial_effective(V::Real, H::Real, rii::Real, rio::Real, roi::Real,
+    roo::Real, rb::Real, kg::Real, kpi::Real, kpo::Real, kf::Real, cf::Real, ρf::Real, μf::Real,
+    ϵ::Real=0.0; model::String="UHF")
+    # Compute the coaxial R1 and R12 resistances
+    R1, R12 = resistance_coaxial(V, rii, rio, roi, roo, rb, kg, kpi, kpo, kf, cf, ρf, μf, ϵ)
+
+    # Compute Rbₑ
+    return resistance_coaxial_effective(V, H, cf, ρf, R1, R12; model=model)
+end

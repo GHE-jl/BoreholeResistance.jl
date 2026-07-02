@@ -85,7 +85,6 @@ Colebrook-White equation within 1% for typical GHE flow conditions. Valid for la
         Colebrook-White Equation for Engineering Systems. In Z. Blikharskyy (Ed.), Proceedings of 
         EcoComfort 2020 (pp. 303–310). Springer International Publishing.
         https://doi.org/10.1007/978-3-030-57340-9_37
-
 """
 function friction_factor_Tkachenko_Mileikovskyi(Re::Real, r::Real, ϵ::Real)
     if Re < eps()
@@ -168,7 +167,6 @@ based on the Gnielinski correlation, which is valid for laminar, transition and 
         exchangers. Geothermics, 97, 102224. https://doi.org/10.1016/j.geothermics.2021.102224
 """
 function Nusselt_annulus(Re::Real, Pr::Real, rb::Real, ro::Real, ϵo::Real=5e-6, ϵi::Real=5e-6)
-    #TODO to validate
     a = ro / rb
     if Re < 2300                                # Laminar phase
         return 3.66 + 1.2 * sqrt(a)             # Eq. 64b of Lamarche 2021
@@ -198,6 +196,33 @@ function Nusselt_annulus(V̇::Real, rb::Real, ro::Real, kf::Real, cf::Real, ρf:
 end
 
 """
+    convection_coefficient(Nu, r, kf)
+    convection_coefficient(V̇, r, kf, cf, ρf, μf, ϵ=5e-6)
+
+Convective heat transfer coefficient of a fluid flowing in a single cylinder pipe.
+# Arguments
+    - `Nu`: Nusselt number [-]
+    - `V̇`: Fluid *speed* in pipe [m/s]
+    - `r`: Pipe inner radius [m]
+    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
+    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
+    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
+    - `μf`: Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
+    - `ϵ`: Pipe roughness [m] (default 5e-6 for HDPE pipes)
+# Output
+    - `h`: Convective heat transfer coefficient [W/m²K]
+# Reference
+    - Lamarche, L. (2023). Fundamentals of Geothermal Heat Pump Systems: Design and Application.
+        Springer Nature Switzerland.
+"""
+function convection_coefficient(Nu::Real, r::Real, kf::Real)
+    return Nu * kf / (2 * r)                    # Eq. 2.32 of Lamarche 2023
+end
+function convection_coefficient(V̇::Real, r::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=5e-6)
+    Nu = Nusselt(V̇, r, kf, cf, ρf, μf, ϵ)   # Eq. 2.42 of Lamarche 2023
+    return convection_coefficient(Nu, r, kf)
+end
+"""
     resistance_fluid(Nu, r, kf)
     resistance_fluid(V̇, r, kf, cf, ρf, μf, ϵ=5e-6)
 
@@ -218,12 +243,10 @@ Convective thermal resistance of a fluid flowing in a single cylinder pipe.
         Springer Nature Switzerland.
 """
 function resistance_fluid(Nu::Real, r::Real, kf::Real)
-    # Convection coefficient
-    h = Nu * kf / (2 * r)                      # Eq. 2.32 of Lamarche 2023
-    # Fluid convective resistance
+    h = convection_coefficient(Nu, r, kf)
     return 1 / (2 * pi * r * h)                # Eq. 5.6 of Lamarche 2023
 end
 function resistance_fluid(V̇::Real, r::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=5e-6)
-    Nu = Nusselt(V̇, r, kf, cf, ρf, μf, ϵ)   # Eq. 2.42 of Lamarche 2023
+    Nu = Nusselt(V̇, r, kf, cf, ρf, μf, ϵ)
     return resistance_fluid(Nu, r, kf)
 end
