@@ -15,7 +15,7 @@ is the hydraulic diameter ``D = 2r``:
 Re = \frac{\rho_f \, \dot V \, D}{\mu_f} = \frac{2 r \, \rho_f \, \dot V}{\mu_f},
 ```
 
-where ``\dot V`` is the **mean fluid speed** [m/s] (not the volumetric flow rate), ``r`` the
+where ``\dot V`` is the **mean fluid speed** in m/s (not the volumetric flow rate), ``r`` the
 pipe inner radius, ``\rho_f`` the density and ``\mu_f`` the dynamic viscosity. The same formula
 applies to an annular channel by using its hydraulic radius ``r = r_b - r_o``. See
 [`Reynolds`](@ref).
