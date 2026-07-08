@@ -59,10 +59,12 @@ function friction_factor_Colebrook_White(Re::Real, r::Real, ϵ::Real)
     else
         f = 0.02
         err = 1.0
-        while err > 1e-5
+        iter = 0
+        while err > 1e-5 && iter < 100      # fixed-point iteration; cap as a safety net
             f_ = f
             f = (1 / (-2 * log10(ϵ / (3.7 * (2 * r)) + 2.51 / (Re * sqrt(f)))))^2
             err = abs(f - f_)
+            iter += 1
         end
         return f
     end

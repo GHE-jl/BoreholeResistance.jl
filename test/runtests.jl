@@ -103,7 +103,7 @@ using BoreholeResistance
         for order in [0, 1]
             Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
             Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; order=order)
-            Rg = Rb - Rp - Rf_nom
+            Rg = Rb - (Rp + Rf_nom) / 2          # grout resistance, N = 2 (Eq. 3)
 
             # Positivity
             @test Rb > 0
@@ -116,6 +116,12 @@ using BoreholeResistance
             @test Ra ≈ resistance_ULoop_total_internal(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
                 cf, ρf, μf, ϵ; order=order)
         end
+
+        # Reference check against Javed and Spitler (2017), Table 6 (first-order column).
+        # θ2 = 3 (rb = 3·rpo), moderate spacing θ1 = 0.445, ground λ = 3, grout 0.6, Rp = 0.05.
+        rpo_t6 = 0.016; rb_t6 = 3 * rpo_t6; s_t6 = 2 * rb_t6 * 0.445
+        Rb_t6 = resistance_ULoop_borehole(s_t6, rb_t6, rpo_t6, 3.0, 0.6, 0.05, 0.0; order=1)
+        @test (Rb_t6 - 0.05 / 2) ≈ 0.14297 atol=2e-3     # Rg = Rb - Rp/N
 
         # First-order must converge toward zeroth-order (within 20 % for this geometry)
         Rb0 = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; order=0)
@@ -139,53 +145,68 @@ using BoreholeResistance
         @test Rbₑ_short <= Rbₑ
     end
 
-    @testset "Double U-loop — 30 L/min total" begin
-        V_total = 2 * V_nom   # 30 L/min total system flow
+    @testset "Double U-loop — Claesson and Javed (2019) example" begin
+        # Eq. 48 / Tables 1-3: λ = 3, λb = 1.5, rb = 57.5 mm, rp = 16 mm, H = 200 m, Rp = 0.05.
+        # V is the flow in one U-tube loop (total system flow 2·Vf = 1.50 m³/h).
+        ks_d, kg_d, rb_d, ro_d = 3.0, 1.5, 0.0575, 0.016
+        H_d, Rp_d, cf_d, ρf_d  = 200.0, 0.05, 4180.0, 997.0
+        V_loop = 1.50 / 3600 / 2
 
+        # Moderate spacing, first-order column (rc = 28.11 mm → s = 2·rc):
+        #   Rb, Ra_diag, Ra_adj, Rbe_dUHF, Rbe_dUBW, Rbe_aUHF, Rbe_aUBW
+        rc = 0.02811; s_d = 2 * rc
+        Rb_r, Rad_r, Raa_r = 0.06047, 0.20654, 0.31142
+        dU, dW, aU, aW      = 0.10329, 0.09824, 0.08887, 0.08652
+
+        Rb  = resistance_ULoop_borehole(s_d, rb_d, ro_d, ks_d, kg_d, Rp_d, 0.0; nLoop=2, order=1)
+        Rad = resistance_ULoop_total_internal(s_d, rb_d, ro_d, ks_d, kg_d, Rp_d, 0.0; nLoop=2,
+                  order=1, network="diagonal")
+        Raa = resistance_ULoop_total_internal(s_d, rb_d, ro_d, ks_d, kg_d, Rp_d, 0.0; nLoop=2,
+                  order=1, network="adjacent")
+
+        # Borehole and internal resistance must match Table 2 (first-order column)
+        @test Rb  ≈ Rb_r  atol=1e-3
+        @test Rad ≈ Rad_r atol=1e-3
+        @test Raa ≈ Raa_r atol=1e-3
+
+        # Effective resistance for both flow networks and both boundary conditions (Tables/Eq. 44,46)
+        @test resistance_ULoop_effective(V_loop, H_d, cf_d, ρf_d, Rb, Rad; nLoop=2, model="UHF") ≈ dU atol=1e-3
+        @test resistance_ULoop_effective(V_loop, H_d, cf_d, ρf_d, Rb, Rad; nLoop=2, model="UBW") ≈ dW atol=1e-3
+        @test resistance_ULoop_effective(V_loop, H_d, cf_d, ρf_d, Rb, Raa; nLoop=2, model="UHF") ≈ aU atol=1e-3
+        @test resistance_ULoop_effective(V_loop, H_d, cf_d, ρf_d, Rb, Raa; nLoop=2, model="UBW") ≈ aW atol=1e-3
+
+        # Diagonal internal resistance is smaller than adjacent (paper discussion)
+        @test Rad < Raa
+
+        # Core and geometry-based effective overloads must agree (nLoop = 2)
+        Rbe_core = resistance_ULoop_effective(V_loop, H_d, cf_d, ρf_d, Rb, Rad; nLoop=2)
+        Rbe_ovl  = resistance_ULoop_effective(V_loop, H_d, s_d, rb_d, ro_d, ks_d, kg_d, cf_d, ρf_d,
+                       Rp_d, 0.0; nLoop=2, network="diagonal")
+        @test Rbe_core ≈ Rbe_ovl
+        @test Rbe_core >= Rb   # short-circuiting can only increase the effective resistance
+
+        # Longer borehole → more short-circuiting → larger effective resistance
+        @test resistance_ULoop_effective(V_loop, 50.0, cf_d, ρf_d, Rb, Rad; nLoop=2) <= Rbe_core
+    end
+
+    @testset "Double U-loop — HDPE overloads and single/double comparison" begin
         for order in [0, 1]
             Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=order)
             Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2,
                 order=order)
-
-            # Positivity
             @test Rb > 0
             @test Ra > 0
-
-            # Both function signatures must give identical results.
-            # The long-form function receives V_nom (per-pipe flow) to compute the same Rf.
+            # Long- and short-form overloads must agree (long form receives per-loop flow V_nom)
             @test Rb ≈ resistance_ULoop_borehole(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
                 cf, ρf, μf, ϵ; nLoop=2, order=order)
             @test Ra ≈ resistance_ULoop_total_internal(V_nom, s, rb, ro, ri, ks, kg, kp, kf,
                 cf, ρf, μf, ϵ; nLoop=2, order=order)
         end
 
-        # First-order must converge toward zeroth-order
-        Rb0 = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=0)
-        Rb1 = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=1)
-        @test Rb0 ≈ Rb1 rtol=0.20
-
-        # Both diagonal and adjacent networks must give positive results
-        Ra_diag = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2,
-            order=1, network="diagonal")
-        Ra_adj  = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2,
-            order=1, network="adjacent")
-        @test Ra_diag > 0
-        @test Ra_adj  > 0
-
-        # Effective resistance uses the total system flow (doubled) to get the correct
-        # thermal capacity flow rate for the two-loop circuit
-        Ra1  = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=1)
-        Rbₑ  = resistance_ULoop_effective(V_total, H, cf, ρf, Rb1, Ra1)
-        @test Rbₑ >= Rb1
-
-        # Medium overload (Rp and Rf provided, V is total flow) must agree with short-form
-        Rbₑ2 = resistance_ULoop_effective(V_total, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf_nom;
-            nLoop=2)
-        @test Rbₑ ≈ Rbₑ2
-
-        # Longer borehole → larger temperature gradient along legs → more short-circuiting
-        Rbₑ_short = resistance_ULoop_effective(V_total, 50.0, cf, ρf, Rb1, Ra1)
-        @test Rbₑ_short <= Rbₑ
+        # At equal per-pipe flow (same Rf) the double U-loop has the lower borehole resistance
+        Rb_single = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=1, order=1)
+        Rb_double = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf_nom; nLoop=2, order=1)
+        @test Rb_double < Rb_single
     end
 
     # Coaxial exchanger — "Borehole 1" of Lamarche (2021), Table 1 (diameters → radii)

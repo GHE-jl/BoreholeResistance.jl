@@ -4,9 +4,11 @@
     resistance_ULoop_borehole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ=0.0,
         nLoop=1, order=1)
 
-Function that computes the thermal borehole resistance of a ground heat exchanger based on the
-zeroth- or first-order multipole formula for a single U-loop of Hellström (1991) for grout thermal 
-resistance. It is the equivalent of the line source theory. See Eq. 8.36 of the Hellström (1991).
+Function that computes the thermal borehole resistance of a ground heat exchanger with the
+zeroth- or first-order multipole method. For a single U-loop (`nLoop=1`, 2 pipes) it uses the
+explicit formulas of Hellström (1991) / Javed and Spitler (2017, Eqs. 12-13); for a double
+U-loop (`nLoop=2`, 4 pipes on a circle of radius `rc = s/2`) it uses Claesson and Javed (2019,
+Eqs. 13-14). The zeroth order is equivalent to the line-source theory.
 Note: To obtain only the grout thermal resistance, set `Rp` and `Rf` as 0.0.
 # Arguments
     - `V`: Fluid flow rate in pipe [m³/s]
@@ -68,7 +70,8 @@ function resistance_ULoop_borehole(s::Real, rb::Real, ro::Real, ks::Real, kg::Re
         end
     elseif nLoop == 2                               # Double U-loop
         if order == 0                               # Zeroth-order multipole method (line-source)
-            Rb = Rₚ / 4 + (1 / (4 * π * kg)) * (log(rb^4 / (4 * ro * (s / 2)^3)) + σ * log(rb^8 / 
+            # Eq. 13 of Claesson and Javed 2019 (rc = s/2 is the pipe-centre radius)
+            Rb = Rₚ / 4 + (1 / (8 * π * kg)) * (log(rb^4 / (4 * ro * (s / 2)^3)) + σ * log(rb^8 /
                 (rb^8 - (s / 2)^8)))
         elseif order == 1                           # First-order multipole method
             θ₁ = ro^2 / (4 * (s / 2)^2)
@@ -76,8 +79,9 @@ function resistance_ULoop_borehole(s::Real, rb::Real, ro::Real, ks::Real, kg::Re
             θ₃ = rb^2 / (rb^8 - (s / 2)^8)^(1/4)
             b₁ = (1 - β) / (1 + β)
 
-            Rb = Rₚ / 4 + (1 / (4 * π * kg)) * (log(rb^4 / (4 * ro * (s / 2)^3)) + σ * log(rb^8 / 
-                (rb^8 - (s / 2)^8))) - ((b₁ * θ₁ * (3 - 8 * σ * θ₂^4)^2) / ((8 * π * kg) * 
+            # Eq. 14 of Claesson and Javed 2019
+            Rb = Rₚ / 4 + (1 / (8 * π * kg)) * (log(rb^4 / (4 * ro * (s / 2)^3)) + σ * log(rb^8 /
+                (rb^8 - (s / 2)^8))) - ((b₁ * θ₁ * (3 - 8 * σ * θ₂^4)^2) / ((8 * π * kg) *
                 (1 + b₁ * θ₁ * (5 + 64 * σ * θ₂^4 * θ₃^4))))
         else
             error("Only order 0 and 1 are implemented for the multipole method.")
@@ -197,13 +201,14 @@ function resistance_ULoop_total_internal(s::Real, rb::Real, ro::Real, ks::Real, 
                 V1 = 1 - 8 * σ * θ₂^3 * θ₃
                 V2 = 3 + 8 * σ * θ₂ * θ₃^3
                 M11 = 1 + 16 * b₁ * σ * θ₁ * (3 * θ₂^3 * θ₃^5 + θ₂^7 * θ₃)
-                M21 = b₁ * θ₁
-                M12 = -M21
+                M21 = b₁ * θ₁                    # M12 = -M21 (Eq. 24); only M21² enters below
                 M22 = -1 - 16 * b₁ * σ * θ₁ * (θ₂ * θ₃^7 + 3 * θ₂^5 * θ₃^3)
 
+                # Eq. 23 of Claesson and Javed 2019: the first-order correction carries the
+                # prefactor (2/(2πkg))·(b₁·p_pc/2) = b₁·p_pc/(2πkg), i.e. 1/(2πkg) not 1/(πkg)
                 Ra = 2 * Rₚ + (1 / (π * kg)) * (log(s / ro) + σ * log((rb^2 + (s / 2)^2) /
-                    (rb^2 - (s / 2)^2))) + (1 / (π * kg)) * ((b₁ * θ₁ * (V2^2 * M11 - 2 * V1 * V2 *
-                    M21 - V1^2 * M22)) / (M11 * M22 + M21^2))
+                    (rb^2 - (s / 2)^2))) + (1 / (2 * π * kg)) * ((b₁ * θ₁ * (V2^2 * M11 -
+                    2 * V1 * V2 * M21 - V1^2 * M22)) / (M11 * M22 + M21^2))
             else
                 error("Only order 0 and 1 are implemented for the multipole method.")
             end
@@ -228,18 +233,27 @@ function resistance_ULoop_total_internal(V::Real, s::Real, rb::Real, ro::Real, r
 end
 
 """
-    resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra)
-    resistance_ULoop_effective(V, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf, nLoop=1)
-    resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, nLoop=1)
+    resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra; nLoop=1, model="mean")
+    resistance_ULoop_effective(V, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf; nLoop=1, model="mean",
+        network="diagonal")
+    resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ=0.0; nLoop=1,
+        model="mean", network="diagonal")
 
-Function that computes the effective thermal borehole resistance (also named Rb*). Effective Rb
-allows considering the thermal short-circuiting along the borehole. Two types of boundary 
-conditions are commonly used: (1) uniform borehole wall temperature (UBW) or (2) uniform heat 
-flux (UHF). The most practical approach is to use an average of both approach.
-Note: The effective resistance formula is derived for single U-tube configurations (2 pipes per
-borehole, `nLoop = 1`).
+Function that computes the effective thermal borehole resistance (also named Rb* or Rbₑ). Rbₑ
+allows considering the thermal short-circuiting along the borehole. Two types of boundary
+conditions are commonly used: (1) uniform borehole wall temperature (UBW) or (2) uniform heat
+flux (UHF). The most practical approach is to use an average of both (`model="mean"`).
+
+Both single (`nLoop=1`) and double (`nLoop=2`) U-tubes are supported. For the single U-tube the
+short-circuit network of Hellström (1991) is used (Eqs. 3.67-3.70 of Javed and Spitler 2016); for
+the double U-tube the network models of Claesson and Javed (2019, Eqs. 44 and 46) are used, which
+differ from the single-U formulas (the internal-resistance coupling is halved). For the double
+U-tube, `Ra` must be the internal resistance of the matching flow configuration (`network`).
+
+Note: `V` is the flow rate in a single U-tube (one down-and-up loop). For a double U-tube the total
+system flow is therefore `2·V` — pass the per-loop flow, not the total.
 # Arguments
-    - `V`: Fluid flow rate in pipe [m³/s]
+    - `V`: Fluid flow rate **in one U-tube loop** (2·V for double U-tube is considered) [m³/s]
     - `H`: Borehole length [m]
     - `s`: Shank spacing (distance between 2 legs of a U-tubes) [m]
     - `rb`: Borehole radius [m]
@@ -256,6 +270,9 @@ borehole, `nLoop = 1`).
     - `Ra`: Total internal thermal resistance [mK/W]
     - `ϵ`: Pipe roughness [m] (default 0.0)
     - `nLoop`: Number of loops in the ground heat exchanger (2 pipes per loop) (default 1)
+    - `model`: Boundary condition, `"UHF"`, `"UBW"` or `"mean"` (default `"mean"`)
+    - `network`: `diagonal` or `adjacent` internal network for the double U-loop (default
+        `diagonal`); ignored for the single U-loop
 # Outputs
     - `Rbₑ`: Effective borehole thermal resistance [mK/W]
 # Reference
@@ -264,47 +281,63 @@ borehole, `nLoop = 1`).
     - Javed, S., & Spitler, J. D. (2016). 3—Calculation of borehole thermal resistance. In S. J. 
         Rees (Ed.), Advances in Ground-Source Heat Pump Systems (pp. 63–95). Woodhead Publishing. 
         https://doi.org/10.1016/B978-0-08-100311-4.00003-0
+    - Claesson, J., & Javed, S. (2019). Explicit multipole formulas and thermal network models for
+        calculating thermal resistances of double U-pipe borehole heat exchangers. Science and
+        Technology for the Built Environment, 25(8), 980–992.
+        https://doi.org/10.1080/23744731.2019.1620565
 """
-function resistance_ULoop_effective(V::Real, H::Real, cf::Real, ρf::Real, Rb::Real, Ra::Real)
-    # UBW - See Eq. 3.68-3.70 of Javed et Spitler (2016)
-    R1b = 2 * Rb                                    # Eq. 3.12
-    R12 = (2 * Ra * R1b) / (2 * R1b - Ra)           # Eq. 3.14
-    tmp = H / (V * cf * ρf)
-    η = tmp / (2 * Rb) * sqrt(1 + 4 * Rb / R12)     # Eq. 3.69
-    if η <= 1
-        Rbₑ1 = Rb + (1 / (3 * R12)) * tmp^2 + (1 / (12 * Rb)) * tmp^2
+function resistance_ULoop_effective(V::Real, H::Real, cf::Real, ρf::Real, Rb::Real, Ra::Real;
+    nLoop::Int=1, model::String="mean")
+    # thermal-capacity resistance factor (per loop). Eq. 34 of Claesson and Javed (2019).
+    RV = H / (V * cf * ρf)
+
+    if nLoop == 1
+        # Single U-tube network (Hellström 1991; Javed and Spitler 2016, Eqs. 3.67 and 3.69,
+        # simplified for symmetric legs — Claesson and Javed 2019, Eqs. 37-38)
+        Rbₑ_UHF = Rb + RV^2 / (3 * Ra)              # uniform heat flux
+        η = RV / sqrt(Rb * Ra)                      # uniform borehole-wall temperature
+    elseif nLoop == 2
+        # Double U-tube network (Claesson and Javed 2019, Eqs. 44 and 46)
+        Rbₑ_UHF = Rb + RV^2 / (6 * Ra)              # uniform heat flux
+        η = RV / sqrt(2 * Rb * Ra)                  # uniform borehole-wall temperature
     else
-        Rbₑ1 = Rb * η * coth(η)
+        error("Only single and double U-loops are implemented for the effective resistance.")
     end
+    Rbₑ_UBW = Rb * η * coth(η)
 
-    # UHF - See Eq. 3.67 of Javed et Spitler (2016)
-    Rbₑ2 = Rb + (1 / (3 * Ra)) * tmp^2
-
-    # Final calculation of the effective borehole thermal resistance
-    return 0.5 * (Rbₑ1 + Rbₑ2)
+    if model == "UHF"
+        return Rbₑ_UHF
+    elseif model == "UBW"
+        return Rbₑ_UBW
+    elseif model == "mean"
+        return 0.5 * (Rbₑ_UHF + Rbₑ_UBW)
+    else
+        error("Only `UHF`, `UBW` and `mean` models are implemented for the effective resistance.")
+    end
 end
 function resistance_ULoop_effective(V::Real, H::Real, s::Real, rb::Real, ro::Real, ks::Real,
-    kg::Real, cf::Real, ρf::Real, Rp::Real, Rf::Real; nLoop::Int=1)
+    kg::Real, cf::Real, ρf::Real, Rp::Real, Rf::Real; nLoop::Int=1, model::String="mean",
+    network::String="diagonal")
     # Compute Rb and Ra with the first-order multipole methods
-        Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
-        Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
+    Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
+    Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop, network=network)
 
     # Compute Rbₑ
-    return resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra)
+    return resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra; nLoop=nLoop, model=model)
 end
 function resistance_ULoop_effective(V::Real, H::Real, s::Real, rb::Real, ro::Real, ri::Real,
     ks::Real, kg::Real, kp::Real, kf::Real, cf::Real, ρf::Real, μf::Real, ϵ::Real=0.0;
-    nLoop::Int=1)
+    nLoop::Int=1, model::String="mean", network::String="diagonal")
     # Compute fluid and pipe resistances
     Rf = resistance_fluid(V / (π * ri^2), ri, kf, cf, ρf, μf, ϵ)
     Rp = resistance_pipe(ro, ri, kp)
 
     # Compute Rb and Ra with the first-order multipole method
     Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
-    Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop)
+    Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf; nLoop=nLoop, network=network)
 
     # Compute Rbₑ
-    return resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra)
+    return resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra; nLoop=nLoop, model=model)
 end
 
 """
@@ -375,7 +408,7 @@ end
     resistance_coaxial_effective(V, H, rii, rio, roi, roo, rb, kg, kpi, kpo, kf, cf, ρf,
         μf, ϵ=0.0; model="UHF")
 
-Computes the effective borehole thermal resistance (`Rb*`) of a coaxial ground heat exchanger,
+Computes the effective borehole thermal resistance `Rbₑ` (`Rb*`) of a coaxial ground heat exchanger,
 accounting for the axial thermal short-circuit between the center pipe and the annulus, following
 Lamarche (2021). Four closed-form models are available through the `model` keyword:
 - `"UHF"` (uniform heat flux, Eq. 31) — the recommended compromise for coaxial exchangers, valid
@@ -385,7 +418,7 @@ Lamarche (2021). Four closed-form models are available through the `model` keywo
 - `"UHF_gradient"` (linearly-varying heat flux, Eqs. 58-63) — refines `"UHF"` when the far-field
     temperature itself varies linearly with depth (e.g. a geothermal gradient).
 Both flow configurations ("center-in" and "annulus-in") yield the same effective resistance under
-the `"UHF"`/`"UBW"`/`"mean"` steady-flux assumptions (Section 2.2 of Lamarche 2021); `"UHF_gradient"`
+the `"UHF"`/`"UBW"`/`"mean"` steady-flux assumptions (Section 2.2 of Lamarche 2021); "UHF_gradient"
 is the exception, by construction (its whole point is to distinguish the two flow directions under
 a gradient).
 # Arguments
@@ -416,8 +449,8 @@ a gradient).
 """
 function resistance_coaxial_effective(V::Real, H::Real, cf::Real, ρf::Real, R1::Real,
     R12::Real; model::String="UHF")
-    # Dimensionless groups (Eq. 7 of Lamarche 2021)
-    γ = H / (2 * ṁcf * R1)
+    # Dimensionless groups (Eq. 7 of Lamarche 2021); ṁ·cf = ρf·V·cf
+    γ = H / (2 * V * ρf * cf * R1)
     Ra = 4 * R1 * R12 / (4 * R1 + R12)
     ξ = sqrt(Ra / (4 * R1))
     η = γ / ξ
@@ -429,7 +462,7 @@ function resistance_coaxial_effective(V::Real, H::Real, cf::Real, ρf::Real, R1:
     elseif model == "mean"              # Average of both models
         return 0.5 * (R1 * η * coth(η) + R1 * (1 + (Ra / R12) * η^2 / 3))
     elseif model == "UHF_gradient"      # Linear heat flux under a geothermal gradient (Eqs. 58-63)
-        return R1 * (1 + H / (6 * V * ρf * cf   * R1) + H^2 / (4 * (V * ρf * cf  )^2 * R1 * R12))
+        return R1 * (1 + H / (6 * V * ρf * cf * R1) + H^2 / (4 * (V * ρf * cf)^2 * R1 * R12))
     else
         error("Only `UHF`, `UBW`, `mean` and `UHF_gradient` models are implemented for coaxial " *
             "exchangers.")

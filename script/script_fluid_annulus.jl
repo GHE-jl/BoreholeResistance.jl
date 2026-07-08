@@ -2,7 +2,6 @@
 # (coaxial borehole geometry). Covers: Reynolds, Prandtl (both overloads), Nusselt
 # (both overloads), Nusselt_annulus (both overloads), and friction factor comparison
 # between the iterative Colebrook-White and the explicit Tkachenko-Mileikovskyi correlation.
-# Run from package root: julia --project=script/ script/script_annulus.jl
 
 using BoreholeResistance
 
@@ -17,7 +16,7 @@ cf = water_cp(T0)
 ρf = water_ρ(T0)
 μf = water_μ(T0)
 
-r_h       = rb - ro              # Annulus hydraulic radius = D_h / 2 [m]
+r_h = rb - ro                   # Annulus hydraulic radius = D_h / 2 [m]
 A_annulus = π * (rb^2 - ro^2)   # Annulus cross-sectional area [m²]
 
 # Point check at V = 15 L/min
@@ -64,7 +63,7 @@ println("  Nusselt (pipe formula, D_h)  = $(round(Nu_pipe, digits=4))")
 println("  Nusselt_annulus (Re, Pr)     = $(round(Nu_ann, digits=4))")
 println()
 
-# --- Flow-rate sweep ---
+# Flow-rate sweep
 println("=== Flow-rate sweep ===")
 println(rpad("V [L/min]", 12), " ", rpad("Re", 8), " ", rpad("Nu_pipe", 14), " ",
         rpad("Nu_annulus", 14), " ", "ratio")
@@ -79,5 +78,3 @@ for Q_Lmin in [5.0, 10.0, 15.0, 20.0, 30.0, 50.0, 80.0, 120.0]
             rpad(string(round(Nu1, digits=4)), 14), " ", rpad(string(round(Nu2, digits=4)), 14), " ",
             round(Nu2/Nu1, digits=4))
 end
-
-println("\nAll assertions passed.")

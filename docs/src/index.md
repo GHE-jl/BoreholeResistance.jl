@@ -16,8 +16,8 @@ transfer between the circulating fluid and the ground in a vertical
 together with temperature-dependent thermophysical properties of water.
 
 The package has **no external dependencies** — everything is implemented with the Julia
-standard library — and supports **single** and **double U-tube** configurations. A coaxial
-configuration is planned.
+standard library — and supports **single U-tube**, **double U-tube** and **coaxial
+(concentric-tube)** configurations.
 
 ## Why borehole resistance matters
 

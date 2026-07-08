@@ -77,7 +77,8 @@ Equivalently, the **long form** computes `Rf` and `Rp` internally from geometry 
 Rb = resistance_ULoop_borehole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ; order = 1)
 ```
 
-The grout-only contribution is recovered as ``R_g = R_b - R_p - R_f``.
+The grout-only contribution is recovered as ``R_g = R_b - (R_p + R_f)/N``, where ``N`` is the
+number of pipes (``N = 2`` for a single U-tube).
 
 ## 6. Effective borehole resistance ``R_b^*``
 
@@ -98,9 +99,9 @@ Rbe = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, �
 
 ## 7. Double U-tube
 
-Set `nLoop = 2` for a double U-tube (four pipes). For the internal resistance you can also
-choose how the legs are paired with the `network` keyword (`"diagonal"`, the default, or
-`"adjacent"`):
+Set `nLoop = 2` for a double U-tube (four pipes on a circle of radius ``r_c = s/2``). For the
+internal resistance you also choose how the two loops are paired with the `network` keyword
+(`"diagonal"`, the default, or `"adjacent"`):
 
 ```julia
 Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop = 2, order = 1)
@@ -108,21 +109,29 @@ Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf;
                                          nLoop = 2, order = 1, network = "diagonal")
 ```
 
-!!! warning "Effective resistance is single-U only"
-    `resistance_ULoop_effective` is derived for the single U-tube (`nLoop = 1`).
-    Use it with double-U resistances only as an approximation.
-
-## 8. Annulus / coaxial helpers
-
-For the annular channel of a coaxial exchanger, the Reynolds number and friction factors take
-the hydraulic radius ``r = r_b - r_o``, and the Nusselt number uses the annulus-specific
-correlation:
+The effective resistance also takes `nLoop = 2`, using the double-U network of Claesson & Javed
+(2019). Pass the flow **in one loop** (the total system flow is `2V`) and the `network` that
+matches `Ra`:
 
 ```julia
-Nu_a = Nusselt_annulus(V̇, rb, ro, kf, cf, ρf, μf)
+Rbe = resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra; nLoop = 2, network = "diagonal")
 ```
 
-The full coaxial borehole resistance is not yet implemented (see the project TODO).
+## 8. Coaxial (concentric-tube) exchanger
+
+A coaxial borehole is described by two resistances instead of the U-tube network:
+[`resistance_coaxial`](@ref) returns ``R_1`` (annulus → borehole wall, equal to ``R_b``) and
+``R_{12}`` (centre pipe ↔ annulus). Pass the four pipe radii and the borehole radius:
+
+```julia
+# rii/rio: inner-pipe inner/outer radius; roi/roo: outer-pipe inner/outer radius
+R1, R12 = resistance_coaxial(V, rii, rio, roi, roo, rb, kg, kpi, kpo, kf, cf, ρf, μf, ϵ)
+Rbe = resistance_coaxial_effective(V, H, cf, ρf, R1, R12; model = "UHF")
+```
+
+Internally the centre-pipe convection uses [`Nusselt`](@ref) and the annulus uses the
+annulus-specific [`Nusselt_annulus`](@ref) (hydraulic radius ``r = r_{oi} - r_{io}``). See
+[Borehole (grout) resistance](@ref) for the model and the `model` keyword options.
 
 ## Validation scripts
 
@@ -136,7 +145,7 @@ julia --project=script/ script/script_single_Uloop.jl
 
 | Script | What it validates |
 |---|---|
-| `script_single_Uloop.jl` | Single U-tube: `Re`, `Pr`, `Nu`, `Rf`, `Rp`, `Rb` (order 0/1), `Ra`, `Rb*`. |
-| `script_double_Uloop.jl` | Double U-tube: `Rb`, `Ra` diagonal/adjacent, `Rbe`. |
-| `script_annulus.jl` | Friction factors CW vs TM, Nusselt pipe vs annulus. |
-| `script_coaxial.jl` | Coaxial GHE (placeholder — not yet implemented). |
+| `script_single_Uloop.jl` | Single U-tube ``R_b``/``R_a`` vs Javed & Spitler (2017), Table 6; plus an HDPE flow sweep. |
+| `script_double_Uloop.jl` | Double U-tube ``R_b``, ``R_a`` (diagonal/adjacent) and ``R_b^*`` vs Claesson & Javed (2019), Tables 1–3. |
+| `script_fluid_annulus.jl` | Friction factors (Colebrook–White vs Tkachenko–Mileikovskyi), Nusselt pipe vs annulus. |
+| `script_coaxial.jl` | Coaxial GHE ``R_1``, ``R_{12}``, ``R_b^*`` (UHF/UBW/mean/gradient) vs Lamarche (2021). |

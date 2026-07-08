@@ -70,14 +70,16 @@ formulas of Claesson & Javed (2019). The zeroth-order borehole resistance is
 
 ```math
 R_b = \frac{R_p^{\text{tot}}}{4}
-+ \frac{1}{4\pi k_g}\left[
++ \frac{1}{8\pi k_g}\left[
 \ln\!\frac{r_b^4}{4\,r_o\,(s/2)^3}
 + \sigma \ln\!\frac{r_b^8}{r_b^8 - (s/2)^8}
 \right],
 ```
 
-with the ``R_p^{\text{tot}}/4`` term reflecting the four parallel pipes. The first-order form
-adds a multipole correction built from
+with the ``R_p^{\text{tot}}/4`` term reflecting the four parallel pipes. The package
+parameterises the four-pipe geometry through the shank spacing ``s``, with the pipe-centre
+radius ``r_c = s/2`` (so ``s`` is the distance between diagonally opposite pipes). The
+first-order form adds a multipole correction built from
 
 ```math
 \theta_1 = \frac{r_o^2}{4(s/2)^2}, \qquad
@@ -110,11 +112,10 @@ keyword:
   (Eqs. 18–19 of Claesson & Javed, 2019);
 - `"adjacent"` — the paired legs are neighbours (Eqs. 22–23).
 
-!!! warning "Known limitation"
-    The `nLoop = 2, order = 1, network = "adjacent"` branch can return an unphysical negative
-    ``R_a`` for some geometries (flagged as a TODO in the source). Prefer the `"diagonal"`
-    network, or fall back to `order = 0`, for adjacent-pair double U-tubes until this is
-    resolved.
+Both networks are validated against the example of Claesson & Javed (2019, Tables 1–3): the
+first-order formulas reproduce the published values to within the paper's stated 1 % of the
+tenth-order multipole method. The diagonal network gives the smaller internal resistance, so it
+short-circuits more; the paper's own example uses both.
 
 ## Coaxial (concentric-tube) exchanger
 
@@ -198,13 +199,14 @@ and gradient sign are not arguments of [`resistance_coaxial_effective`](@ref).
 ## Recovering the grout-only resistance
 
 Since ``R_b`` includes the fluid and pipe contributions, the grout-only resistance is the
-remainder:
+remainder. The ``N`` parallel pipes (``N = 2`` for a single U-tube, ``N = 4`` for a double)
+contribute the combined fluid-and-pipe resistance ``R_p^{\text{tot}}/N``, so
 
 ```math
-R_g = R_b - R_p - R_f.
+R_g = R_b - \frac{R_p + R_f}{N}
 ```
 
-This is a useful sanity check — ``R_g`` must be positive.
+(Eq. 3 of Javed & Spitler, 2017). This is a useful sanity check — ``R_g`` must be positive.
 
 ## Functions on this page
 

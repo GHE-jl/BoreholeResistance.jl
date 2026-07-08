@@ -59,7 +59,7 @@ resistance_fluid(V̇, r, kf, cf, ρf, μf, ϵ=5e-6)
 resistance_pipe(ro, ri, kp)    # log(ro/ri) / (2π·kp)
 ```
 
-### Borehole resistance — multipole method (Hellström 1991, Javed & Spitler 2017)
+### Borehole resistance — multipole method (Hellström 1991; Javed & Spitler 2017; Claesson & Javed 2019)
 ```julia
 # Short form: pass pre-computed Rp and Rf
 resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop=1, order=1)
@@ -69,7 +69,8 @@ resistance_ULoop_borehole(V, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ=0.0
     nLoop=1, order=1)
 ```
 
-`nLoop=1` → single U-tube (2 pipes); `nLoop=2` → double U-tube (4 pipes).
+`nLoop=1` → single U-tube (2 pipes); `nLoop=2` → double U-tube (4 pipes on a circle of radius
+`rc = s/2`, i.e. `s` is the distance between diagonally opposite pipes).
 `order=0` → zeroth-order (line-source); `order=1` → first-order multipole.
 
 ### Total internal resistance (for Rb* computation)
@@ -80,18 +81,24 @@ resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf;
 ```
 
 ### Effective borehole resistance Rb*
-Accounts for axial thermal short-circuit along the borehole depth:
+Accounts for axial thermal short-circuit along the borehole depth. `V` is the flow rate **in one
+U-tube loop** (for a double U-tube the total system flow is `2V`). `model` selects the boundary
+condition (`"UHF"`, `"UBW"` or `"mean"`, default `"mean"`); for the double U-tube, `network`
+must match the one used for `Ra`:
 ```julia
 # From pre-computed Rb and Ra
-resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra)
+resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra; nLoop=1, model="mean")
 
 # From Rp/Rf
-resistance_ULoop_effective(V, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf; nLoop=1)
+resistance_ULoop_effective(V, H, s, rb, ro, ks, kg, cf, ρf, Rp, Rf;
+    nLoop=1, model="mean", network="diagonal")
 
 # Full form: all geometry and fluid properties
 resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf, ϵ=0.0;
-    nLoop=1)
+    nLoop=1, model="mean", network="diagonal")
 ```
+Single-U formulas follow Javed & Spitler (2016); double-U (`nLoop=2`) follows Claesson & Javed
+(2019, Eqs. 44/46).
 
 ### Coaxial (concentric-tube) borehole — Lamarche (2021)
 
@@ -142,10 +149,10 @@ julia --project=script/ -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
 
 | Script | What it validates |
 |---|---|
-| `script_single_Uloop.jl` | Single U-tube: Re, Pr, Nu, Rf, Rp, Rb (order 0/1), Ra, Rb*, all overloads |
-| `script_double_Uloop.jl` | Double U-tube: Rb, Ra diagonal/adjacent (order 0/1), Rbe, all overloads |
-| `script_annulus.jl` | Friction factors CW vs TM, Nusselt pipe vs annulus, all overloads |
-| `script_coaxial.jl` | Coaxial GHE: R1, R12, Rb* (UHF/UBW/mean) vs Lamarche (2021) Borehole 1 |
+| `script_single_Uloop.jl` | Single U-tube Rb/Ra/Rg vs Javed & Spitler (2017) Table 6; HDPE flow sweep; all overloads |
+| `script_double_Uloop.jl` | Double U-tube Rb, Ra (diagonal/adjacent), Rb* vs Claesson & Javed (2019) Tables 1–3; all overloads |
+| `script_fluid_annulus.jl` | Friction factors CW vs TM, Nusselt pipe vs annulus, all overloads |
+| `script_coaxial.jl` | Coaxial GHE: R1, R12, Rb* (UHF/UBW/mean/gradient) vs Lamarche (2021) Boreholes 1 & 3b |
 
 ## Installation
 

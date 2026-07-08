@@ -19,80 +19,73 @@ the fluid spends less time exchanging heat with the opposite leg.
 ## Inputs
 
 ``R_b^*`` is built from the local resistances ``R_b`` and ``R_a``, the borehole length ``H``,
-and the fluid heat-capacity flow rate. The governing dimensionless group is the ratio of the
-axial advective capacity to the borehole resistance,
+and the fluid heat-capacity flow rate. The governing quantity is the thermal-capacity resistance
+factor
 
 ```math
-\tau = \frac{H}{V\,c_f\,\rho_f},
+R_V = \frac{H}{V\,c_f\,\rho_f},
 ```
 
-where ``V`` is the volumetric flow rate per pipe and ``c_f \rho_f`` is the volumetric heat
-capacity of the fluid.
-
-## Delta-network mapping
-
-The two legs and the borehole wall form a delta network (see
-[Resistance network](@ref Resistance-network)). The leg-to-wall and leg-to-leg resistances are
-
-```math
-R_1 = 2 R_b, \qquad
-R_{12} = \frac{2 R_a R_1}{2 R_1 - R_a}.
-```
+where ``V`` is the volumetric flow rate **in one U-tube loop** and ``c_f \rho_f`` is the
+volumetric heat capacity of the fluid. For a double U-tube the total system flow is ``2V`` (the
+two loops in parallel), but ``R_V`` uses the per-loop value ``V`` — pass the per-loop flow, not
+the total.
 
 ## Two boundary conditions, averaged
 
-The package follows Javed & Spitler (2016) and computes ``R_b^*`` under two idealized boundary
-conditions, then averages them.
+The package computes ``R_b^*`` under two idealized boundary conditions — uniform heat flux (UHF)
+and uniform borehole-wall temperature (UBW) — and, by default, averages them. The `model`
+keyword selects `"UHF"`, `"UBW"` or `"mean"` (the default).
 
-### Uniform borehole wall temperature (UBW)
+### Single U-tube (`nLoop = 1`)
 
-Define
-
-```math
-\eta = \frac{\tau}{2 R_b}\sqrt{1 + \frac{4 R_b}{R_{12}}}.
-```
-
-Then
+Following Hellström (1991) / Javed & Spitler (2016), simplified for symmetric legs (Claesson &
+Javed, 2019, Eqs. 37–38):
 
 ```math
-R_{b,\text{UBW}}^* =
-\begin{cases}
-R_b\,\eta\,\coth\eta & \eta > 1 \\[6pt]
-R_b + \dfrac{\tau^2}{3 R_{12}} + \dfrac{\tau^2}{12 R_b} & \eta \le 1
-\end{cases}
+R_{b,\text{UHF}}^* = R_b + \frac{R_V^2}{3 R_a},
+\qquad
+R_{b,\text{UBW}}^* = R_b\,\eta\coth\eta,
+\qquad
+\eta = \frac{R_V}{\sqrt{R_b R_a}}.
 ```
 
-(Eqs. 3.68–3.70 of Javed & Spitler, 2016). The small-``\eta`` branch is the series expansion
-that stays numerically well-behaved when the short-circuit is weak.
+### Double U-tube (`nLoop = 2`)
 
-### Uniform heat flux (UHF)
+The two loops make the internal coupling stronger, changing the network coefficients (Claesson &
+Javed, 2019, Eqs. 44 and 46):
 
 ```math
-R_{b,\text{UHF}}^* = R_b + \frac{\tau^2}{3 R_a}
+R_{b,\text{UHF}}^* = R_b + \frac{R_V^2}{6 R_a},
+\qquad
+R_{b,\text{UBW}}^* = R_b\,\eta\coth\eta,
+\qquad
+\eta = \frac{R_V}{\sqrt{2 R_b R_a}}.
 ```
 
-(Eq. 3.67 of Javed & Spitler, 2016).
+For the double U-tube, ``R_a`` must be the internal resistance of the matching flow
+configuration — pass the same `network` (`"diagonal"` or `"adjacent"`) that was used for
+``R_a``.
 
 ### Average
 
-The reported effective resistance is the mean of the two limits, which is the recommended
-practical estimate:
+The default `model = "mean"` returns
 
 ```math
-R_b^* = \tfrac{1}{2}\left(R_{b,\text{UBW}}^* + R_{b,\text{UHF}}^*\right).
+R_b^* = \tfrac{1}{2}\left(R_{b,\text{UHF}}^* + R_{b,\text{UBW}}^*\right).
 ```
 
 ## Overloads
 
-[`resistance_ULoop_effective`](@ref) is available in three forms of increasing convenience:
+[`resistance_ULoop_effective`](@ref) is available in three forms of increasing convenience,
+each accepting `nLoop`, `model` and (for the double U-tube) `network`:
 
 1. from pre-computed ``R_b`` and ``R_a``;
 2. from ``R_p`` and ``R_f`` (computes ``R_b`` and ``R_a`` internally);
 3. from raw geometry and fluid properties (computes everything).
 
-!!! warning "Single U-tube derivation"
-    The effective-resistance formulas are derived for the single U-tube (`nLoop = 1`, two pipes
-    per borehole). Applying them to a double U-tube is an approximation.
+Both configurations are validated: the single U-tube against Javed & Spitler (2016/2017) and the
+double U-tube against Claesson & Javed (2019, Tables 1–3), reproduced by `script_double_Uloop.jl`.
 
 ## Function on this page
 

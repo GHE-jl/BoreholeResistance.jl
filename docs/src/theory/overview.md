@@ -97,8 +97,10 @@ The multipole outputs map onto this network as
 R_1 = 2 R_b, \qquad R_{12} = \frac{2 R_a R_1}{2 R_1 - R_a}.
 ```
 
-This is the network the [effective resistance](@ref Effective-resistance) calculation uses to
-fold in the axial fluid-temperature variation along ``H``.
+This network underlies the [effective resistance](@ref Effective-resistance) calculation, which
+folds in the axial fluid-temperature variation along ``H``. For the symmetric U-tube it reduces
+to the compact closed forms in ``R_b`` and ``R_a`` given on that page (the double U-tube uses the
+analogous four-pipe network of Claesson & Javed, 2019).
 
 ## Map of the implementation
 
