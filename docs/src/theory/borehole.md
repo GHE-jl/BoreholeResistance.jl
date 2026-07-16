@@ -6,7 +6,7 @@ interact, the grout step is solved with the **multipole method** of Hellström (
 explicit form given by Javed & Spitler (2017) for single U-tubes and Claesson & Javed (2019)
 for double U-tubes. The same machinery also yields the **total internal resistance** ``R_a``
 between the two legs. Both are implemented in
-[`resistance_borehole.jl`](https://github.com/GeothermalJL/BoreholeResistance.jl/blob/master/src/resistance_borehole.jl).
+[`resistance_borehole.jl`](https://github.com/GHE-jl/BoreholeResistance.jl/blob/master/src/resistance_borehole.jl).
 
 ## Common dimensionless groups
 
@@ -45,7 +45,7 @@ from the borehole centre).
 Eq. 12 of Javed & Spitler (2017):
 
 ```math
-R_b = \frac{1}{4\pi k_g}\left[\beta + \ln\!\frac{\theta_2}{2\,\theta_1\,(1-\theta_1^4)^{\sigma}}\right].
+R_b^{(0)} = \frac{1}{4\pi k_g}\left[\beta + \ln\!\frac{\theta_2}{2\,\theta_1\,(1-\theta_1^4)^{\sigma}}\right].
 ```
 
 ### First order
@@ -53,7 +53,7 @@ R_b = \frac{1}{4\pi k_g}\left[\beta + \ln\!\frac{\theta_2}{2\,\theta_1\,(1-\thet
 Eq. 13 of Javed & Spitler (2017) adds the first multipole correction. With ``b_1 = (1+\beta)/(1-\beta)``:
 
 ```math
-R_b = \frac{1}{4\pi k_g}\left[
+R_b^{(1)} = \frac{1}{4\pi k_g}\left[
 \beta + \ln\!\frac{\theta_2}{2\,\theta_1\,(1-\theta_1^4)^{\sigma}}
 - \frac{\theta_3^2\left(1 - \dfrac{4\sigma\theta_1^4}{1-\theta_1^4}\right)^2}
        {b_1 + \theta_3^2\left(1 + \dfrac{16\sigma\theta_1^4}{(1-\theta_1^4)^2}\right)}
@@ -65,11 +65,14 @@ mainly for comparison with the classical line-source estimate.
 
 ## Double U-tube
 
-For `nLoop = 2` (four pipes, the two loops sharing the borehole) the package uses the explicit
-formulas of Claesson & Javed (2019). The zeroth-order borehole resistance is
+For `nLoop = 2` (four pipes, the two loops sharing the borehole) the package uses the explicit formulas of Claesson & Javed (2019).
+
+### Zeroth order
+
+ The zeroth-order borehole resistance (Eq. 13) is
 
 ```math
-R_b = \frac{R_p^{\text{tot}}}{4}
+R_b^{(0)} = \frac{R_p^{\text{tot}}}{4}
 + \frac{1}{8\pi k_g}\left[
 \ln\!\frac{r_b^4}{4\,r_o\,(s/2)^3}
 + \sigma \ln\!\frac{r_b^8}{r_b^8 - (s/2)^8}
@@ -77,9 +80,11 @@ R_b = \frac{R_p^{\text{tot}}}{4}
 ```
 
 with the ``R_p^{\text{tot}}/4`` term reflecting the four parallel pipes. The package
-parameterises the four-pipe geometry through the shank spacing ``s``, with the pipe-centre
-radius ``r_c = s/2`` (so ``s`` is the distance between diagonally opposite pipes). The
-first-order form adds a multipole correction built from
+parameterises the four-pipe geometry through the shank spacing ``s``, the distance between diagonally opposite pipes.
+
+### First order
+
+The first-order form adds a multipole correction built from
 
 ```math
 \theta_1 = \frac{r_o^2}{4(s/2)^2}, \qquad
@@ -87,35 +92,72 @@ first-order form adds a multipole correction built from
 \theta_3 = \frac{r_b^2}{\bigl(r_b^8-(s/2)^8\bigr)^{1/4}},
 ```
 
-(see the source for the full expression).
+Then, the explicit formula adds to the line source model with
+
+```math
+R_b^{(1)} = R_b^{(0)} - \frac{1}{8\pi k_g}\cdot\frac{b_1 \theta_1 \left(3-8\sigma \theta_2^4\right)^2}{1+b_1 \theta_1 \left(5+64\sigma \theta_2^4 \theta_3^4 \right)}.
+```
 
 ## Total internal resistance ``R_a``
 
-``R_a`` is the resistance to heat exchange *between* the down-flowing and up-flowing legs — the
-quantity that controls the thermal short-circuit. For the single U-tube, with
-``\theta_1 = s/(2 r_b)`` and ``\theta_3 = r_o/s``, the zeroth-order form (Eq. 26 of Javed &
-Spitler, 2017) is
+``R_a`` is the resistance to heat exchange *between* the down-flowing and up-flowing legs, the quantity that controls the thermal short-circuit.
+
+### Single U-pipe network
+
+For the single U-tube, with ``\theta_1 = s/(2 r_b)`` and ``\theta_3 = r_o/s``, the zeroth-order form (Eq. 25 of Javed & Spitler, 2017) is
 
 ```math
-R_a = \frac{1}{\pi k_g}\left[\beta + \ln\!\frac{(1+\theta_1^2)^{\sigma}}{\theta_3\,(1-\theta_1^2)^{\sigma}}\right],
+R_a^{(0)} = \frac{1}{\pi k_g}\left[\beta + \ln\left(\frac{(1+\theta_1^2)^{\sigma}}{\theta_3\,(1-\theta_1^2)^{\sigma}}\right)\right],
 ```
 
-with a first-order correction analogous to ``R_b``. See
-[`resistance_ULoop_total_internal`](@ref).
+with a first-order correction analogous to ``R_b`` (Eq. 26 of Javed & Spitler, 2017)
 
-### Double-U pipe networks
+```math
+R_a^{(1)} = \frac{1}{\pi k_g}\left[\beta + \ln\left(\frac{(1+\theta_1^2)^{\sigma}}{\theta_3\,(1-\theta_1^2)^{\sigma}}\right) - \frac{\theta_3^2\left(1-\theta_1^4+4\sigma\theta_1^2\right)^2}{b_1\left(1-\theta_1^4\right)^2 - \theta_3^2\left(1-\theta_1^4\right)^2+8\sigma \theta_1^2 \theta_3^2 \left(1+\theta_1^4\right)} \right].
+```
+
+### Double U-pipe networks
 
 For the double U-tube the two loops can be connected in two ways, selected with the `network`
 keyword:
 
-- `"diagonal"` (default) — the paired legs sit on the diagonal of the four-pipe arrangement
-  (Eqs. 18–19 of Claesson & Javed, 2019);
+- `"diagonal"` (default) — the paired legs sit on the diagonal of the four-pipe arrangement (Eqs. 18–19 of Claesson & Javed, 2019);
 - `"adjacent"` — the paired legs are neighbours (Eqs. 22–23).
 
-Both networks are validated against the example of Claesson & Javed (2019, Tables 1–3): the
-first-order formulas reproduce the published values to within the paper's stated 1 % of the
-tenth-order multipole method. The diagonal network gives the smaller internal resistance, so it
-short-circuits more; the paper's own example uses both.
+For the `"diagonal"` network, the zeroth order is (Eq. 18 of Claesson & Javed, 2019)
+
+```math
+R_{a,d}^{(0)} = 2R_p^{\text{tot}} + \frac{1}{\pi k_g}\left(\ln\left(\frac{(s/2)}{r_o}\right) + \sigma \ln\left(\frac{r_b^4+(s/2)^4}{r_b^4 - (s/2)^4}\right)\right),
+```
+
+while the first order is (Eq. 19 of Claesson & Javed, 2019)
+
+```math
+R_{a,d}^{(1)} = R_{a,d}^{(0)}-\frac{1}{\pi k_g}\cdot\frac{b_1\theta_1\left(1+8\sigma\theta_2^2\theta_3^2\right)^2}{1-b_1\theta_1\left(3-32\sigma\left(\theta_2^2\theta_3^6+\theta_2^6\theta_3^2\right)\right)}.
+```
+
+For the `"adjacent"` network, the zeroth order is (Eq. 22 of Claesson & Javed, 2019)
+
+```math
+R_{a,a}^{(0)} = 2R_p^{\text{tot}} + \frac{1}{\pi k_g}\left(\ln\left(\frac{s}{r_o}\right) + \sigma \ln\left(\frac{r_b^4+(s/2)^4}{r_b^4 - (s/2)^4}\right)\right),
+```
+
+while the first order is (Eq. 23 of Claesson & Javed, 2019)
+
+```math
+R_{a,a}^{(1)} = R_{a,a}^{(0)}+\frac{b_1\theta_1}{2\pi k_g}\cdot\frac{V_2^2M_{11}-2V_1V_2M_{21}-V_1^2M_{22}}{M_{11}M_{22}+M_{21}^2},
+```
+
+with the following variables
+
+```math
+V_1 = 1-8\sigma\theta_2^3\theta_3\\
+V_2 = 3+8\sigma\theta_2\theta_3^3\\
+M_{11} = 1+16b_1\sigma\theta_1\left(3\theta_2^3\theta_3^5+\theta_2^7\theta_3\right)\\
+M_{12} = -M_{21}\\
+M_{21} = b_1 \theta_1\\
+M_{22} = -1-16b_1\sigma\theta_1\left(\theta_2\theta_3^7+3\theta_2^5\theta_3^3\right)
+```
 
 ## Coaxial (concentric-tube) exchanger
 
@@ -124,77 +166,28 @@ reduces to two resistances (implemented in
 [`resistance_coaxial`](@ref)):
 
 ```math
-R_{12} = \frac{1}{h_{in}\,\pi d_{ii}}
-       + \frac{\ln(d_{io}/d_{ii})}{2\pi k_{p,in}}
-       + \frac{1}{h_{ann}\,\pi d_{io}},
+R_{12} = \frac{1}{2\pi h_{in} r_{ii}}
+       + \frac{\ln(r_{io}/r_{ii})}{2\pi k_{p,in}}
+       + \frac{1}{2\pi h_{ann}r_{io}},
 \qquad
-R_1 = \frac{1}{h_{ann}\,\pi d_{oi}}
-    + \frac{\ln(d_{oo}/d_{oi})}{2\pi k_{p,out}}
-    + \frac{\ln(d_b/d_{oo})}{2\pi k_g},
+R_1 = \frac{1}{2\pi h_{ann}r_{oi}}
+    + \frac{\ln(r_{oo}/r_{oi})}{2\pi k_{p,out}}
+    + \frac{\ln(r_b/r_{oo})}{2\pi k_g},
 ```
 
-(Eqs. 1–2 of Lamarche, 2021), where ``R_{12}`` links the center pipe to the annulus and ``R_1``
+(Eqs. 1–2 of Lamarche, 2021), where ``R_{12}`` links the center pipe to the annulus fluid and ``R_1``
 links the annulus fluid to the borehole wall. The convection coefficient in the center pipe uses
-[`Nusselt`](@ref); the annulus uses [`Nusselt_annulus`](@ref). By Eq. 8, the (steady) borehole
-resistance of a coaxial exchanger is simply ``R_b = R_1``.
-
-### Effective resistance ``R_b^*``
-
-With the groups (Eq. 7, ``\dot m c_f = V\rho_f c_f``)
+[`Nusselt`](@ref), and the annulus uses [`Nusselt_annulus`](@ref). By Eq. 8, the (steady) borehole
+resistance of a coaxial exchanger is simply
 
 ```math
-\gamma = \frac{H}{2\,\dot m c_f\,R_1}, \quad
-R_a = \frac{4 R_1 R_{12}}{4 R_1 + R_{12}}, \quad
-\xi = \sqrt{\frac{R_a}{4 R_1}}, \quad
-\eta = \frac{\gamma}{\xi},
+R_b = R_1,
 ```
-
-the two closed forms exposed by [`resistance_coaxial_effective`](@ref) are
+and the total internal resistance is
 
 ```math
-R_b^* = R_1\,\eta\coth\eta \quad (\text{UBW, Eq. 14}),
-\qquad
-R_b^* = R_1\left(1 + \frac{R_a}{R_{12}}\frac{\eta^2}{3}\right) \quad (\text{UHF, Eq. 31}).
+R_a = \frac{4 R_1 R_{12}}{4 R_1 + R_{12}}.
 ```
-
-Both flow directions ("center-in" and "annulus-in") give the same ``R_b^*``. Lamarche (2021)
-recommends the uniform-heat-flux form (Eq. 31) as the better compromise for coaxial exchangers,
-which is the default `model = "UHF"`.
-
-### Linearly-varying far-field temperature (`"UHF_gradient"`)
-
-The models above assume a uniform far-field temperature. When it instead varies linearly with
-depth — a geothermal gradient in a deep borehole — Lamarche (2021) shows (Section 3) that a
-linearly-varying borehole-wall temperature is the physically consistent extension, but its closed
-form (Eq. 43) needs the *actual* wall-temperature slope and reference temperatures as extra
-inputs, breaking the borehole/ground decoupling that keeps `"UHF"`/`"UBW"`/`"mean"`
-self-contained. Section 4.1 instead proposes a much cheaper proxy: keep the borehole decoupled
-from the ground, but let the heat flux itself vary linearly along the borehole instead of being
-uniform (Eq. 58), with boundary conditions chosen so it vanishes at one end:
-
-```math
-\tilde q'(\tilde z) = 2(1-\tilde z) \quad \text{(heat injection, annulus-in)}, \qquad
-\tilde q'(\tilde z) = 2\tilde z \quad \text{(heat extraction, center-in)}.
-```
-
-Both cases integrate (Eqs. 60–63) to the same closed form, exposed as `model = "UHF_gradient"`:
-
-```math
-R_b^* = R_1\left(1 + \frac{H}{6\,\dot m c_f R_1} + \frac{H^2}{4\,(\dot m c_f)^2 R_1 R_{12}}\right)
-\quad (\text{Eqs. 61/63}).
-```
-
-It needs no numeric input beyond `"UHF"` (same `V`, `H`, `R_1`, `R_{12}`), but it is **not** a
-generalization of `"UHF"` — it is a fixed linear heat-flux shape, not a tunable gradient
-magnitude, so it does not reduce to Eq. 31 when there happens to be no gradient (Table 3 of
-Lamarche 2021 reports both values for the same borehole, and they differ: `0.0356` mK/W for
-`"UHF"` versus `0.0420`/`0.0494` mK/W for `"UHF_gradient"`). It is also only valid for the
-flow-direction/heat-mode pairing that Lamarche (2021) identifies as *unfavorable* for the
-gradient's sign — heat injection with "annulus-in" or heat extraction with "center-in" when the
-far-field temperature increases with depth (mirror the pairing for a negative gradient). For the
-*favorable* pairing, Lamarche (2021) found that plain `"UHF"` remains the better estimate; picking
-the right model for the situation is the caller's responsibility, since flow direction, heat mode
-and gradient sign are not arguments of [`resistance_coaxial_effective`](@ref).
 
 ## Recovering the grout-only resistance
 
@@ -214,5 +207,4 @@ R_g = R_b - \frac{R_p + R_f}{N}
 resistance_ULoop_borehole
 resistance_ULoop_total_internal
 resistance_coaxial
-resistance_coaxial_effective
 ```

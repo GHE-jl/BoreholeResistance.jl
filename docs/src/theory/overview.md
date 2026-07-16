@@ -7,7 +7,7 @@ thermal resistances. The subsequent theory pages derive each resistance in turn.
 ## The borehole heat exchanger
 
 A vertical GHE is a borehole of radius ``r_b`` drilled to a depth ``H``, into which one or more
-U-shaped pipe loops are inserted and the remaining space backfilled with **grout**. A heat
+U-shaped pipe loops or a coaxial configuration are inserted and the remaining space backfilled with **grout**. A heat
 carrier fluid (water, or water with antifreeze) is pumped down one leg of the U-tube and back
 up the other, exchanging heat with the ground through the pipe wall and the grout.
 
@@ -16,12 +16,10 @@ The radial heat path, from the inside out, crosses four media:
 1. the **fluid** boundary layer (convection),
 2. the **pipe wall** (conduction),
 3. the **grout** filling the borehole (conduction, multi-pipe geometry),
-4. the **ground** outside the borehole wall (handled separately by transient *g*-function
-   models — not in this package).
+4. the **ground** outside the borehole wall (handled separately by transient *g*-function models).
 
 This package computes the steady-state resistance from the fluid up to the **borehole wall**
-at ``r = r_b``. Everything beyond the wall — the transient response of the ground — is the
-domain of `GroundResponse.jl`.
+at ``r = r_b``. Everything beyond the wall, the transient response of the ground, is the domain of the `GroundResponse.jl` package.
 
 ## Definition of the borehole resistance
 
@@ -30,13 +28,13 @@ borehole length ``q`` [W/m] to the temperature difference between the mean fluid
 borehole wall:
 
 ```math
-\bar{T}_f - T_b = q \, R_b .
+\bar{T}_f - T_b = q R_b .
 ```
 
 It is a *local*, steady-state quantity: it assumes the heat flux is uniform along the depth and
 ignores how the fluid temperature itself changes as it travels down and up the borehole. That
-last effect — the **thermal short-circuit** between the two legs — is captured separately by
-the [effective resistance](@ref Effective-resistance) ``R_b^*``.
+last effect, the **thermal short-circuit** between the two legs, is captured separately by
+the effective resistance ``R_b^*``.
 
 ## Series decomposition
 
@@ -66,8 +64,8 @@ which measures the pipe-plus-fluid resistance relative to the grout conductivity
 ## The grout step is not a simple series resistance
 
 The grout contribution cannot be written as a plain series resistance, because the pipes sit
-**off-centre** inside the borehole and there are **several of them** (two for a single U-tube,
-four for a double). The temperature field in the grout is genuinely two-dimensional, and the
+**off-centre** inside the borehole and there are **several of them** (two for a single,
+four for a double U-tube). The temperature field in the grout is genuinely two-dimensional, and the
 legs thermally interact.
 
 The **multipole method** of Hellström (1991) solves this 2-D conduction problem by expanding
@@ -102,14 +100,22 @@ folds in the axial fluid-temperature variation along ``H``. For the symmetric U-
 to the compact closed forms in ``R_b`` and ``R_a`` given on that page (the double U-tube uses the
 analogous four-pipe network of Claesson & Javed, 2019).
 
+The **coaxial** configuration does not fit this delta picture: there is no off-centre multipole
+problem, since the two flow channels (centre pipe and annulus) are concentric. Instead it reduces
+to a simple two-resistance series network, ``R_{12}`` (centre pipe ↔ annulus) and ``R_1`` (annulus
+→ borehole wall), described in [Coaxial (concentric-tube) exchanger](@ref) and its own effective
+resistance in [Effective coaxial resistance](@ref).
+
 ## Map of the implementation
 
 | Quantity | Symbol | Function | Theory page |
 |---|---|---|---|
-| Reynolds, Prandtl, Nusselt | ``Re,\,Pr,\,Nu`` | [`Reynolds`](@ref), [`Prandtl`](@ref), [`Nusselt`](@ref) | [Fluid](@ref Fluid-convective-resistance) |
+| Reynolds, Prandtl, Nusselt | ``Re,Pr,Nu`` | [`Reynolds`](@ref), [`Prandtl`](@ref), [`Nusselt`](@ref) | [Fluid](@ref Fluid-convective-resistance) |
 | Friction factor | ``f`` | [`friction_factor_Colebrook_White`](@ref) | [Fluid](@ref Fluid-convective-resistance) |
 | Fluid convective resistance | ``R_f`` | [`resistance_fluid`](@ref) | [Fluid](@ref Fluid-convective-resistance) |
 | Pipe conductive resistance | ``R_p`` | [`resistance_pipe`](@ref) | [Pipe](@ref Pipe-conductive-resistance) |
 | Borehole resistance | ``R_b`` | [`resistance_ULoop_borehole`](@ref) | [Borehole](@ref Borehole-(grout)-resistance) |
 | Total internal resistance | ``R_a`` | [`resistance_ULoop_total_internal`](@ref) | [Borehole](@ref Borehole-(grout)-resistance) |
 | Effective resistance | ``R_b^*`` | [`resistance_ULoop_effective`](@ref) | [Effective](@ref Effective-resistance) |
+| Coaxial resistances | ``R_1,R_{12}`` | [`resistance_coaxial`](@ref) | [Borehole](@ref Borehole-(grout)-resistance) |
+| Coaxial effective resistance | ``R_b^*`` | [`resistance_coaxial_effective`](@ref) | [Effective](@ref Effective-resistance) |

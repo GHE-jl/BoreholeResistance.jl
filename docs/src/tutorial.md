@@ -49,7 +49,7 @@ Nu = Nusselt(Re, Pr, ri, ϵ)        # Gnielinski correlation
 ```
 
 The transition through laminar / transitional / turbulent regimes is handled automatically
-inside [`Nusselt`](@ref); see [Fluid convective resistance](@ref) for the regime boundaries.
+inside [`Nusselt`](@ref), see [Fluid convective resistance](@ref) for the regime boundaries.
 
 ## 4. The individual resistances
 
@@ -58,8 +58,7 @@ Rp = resistance_pipe(ro, ri, kp)                 # pipe wall conduction
 Rf = resistance_fluid(V̇, ri, kf, cf, ρf, μf, ϵ) # fluid convection
 ```
 
-`Rp` is purely geometric (independent of flow); `Rf` falls as the flow rate — and hence ``Nu``
-— rises.
+`Rp` is purely geometric (independent of flow), `Rf` falls as the flow rate, and hence ``Nu``, rises.
 
 ## 5. Borehole resistance ``R_b`` and internal resistance ``R_a``
 
@@ -89,7 +88,7 @@ up-flowing legs. It needs the flow rate, the borehole length and the volumetric 
 Rbe = resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra)
 ```
 
-or, from geometry directly, the all-in-one form used in the [Quick start](@ref BoreholeResistance.jl):
+or, from geometry directly, the all-in-one form used in the [Quick start](@ref):
 
 ```julia
 Rbe = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf; nLoop = 1)
@@ -99,7 +98,7 @@ Rbe = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, �
 
 ## 7. Double U-tube
 
-Set `nLoop = 2` for a double U-tube (four pipes on a circle of radius ``r_c = s/2``). For the
+Set `nLoop = 2` for a double U-tube (four pipes on a circle of radius). For the
 internal resistance you also choose how the two loops are paired with the `network` keyword
 (`"diagonal"`, the default, or `"adjacent"`):
 
@@ -121,10 +120,17 @@ Rbe = resistance_ULoop_effective(V, H, cf, ρf, Rb, Ra; nLoop = 2, network = "di
 
 A coaxial borehole is described by two resistances instead of the U-tube network:
 [`resistance_coaxial`](@ref) returns ``R_1`` (annulus → borehole wall, equal to ``R_b``) and
-``R_{12}`` (centre pipe ↔ annulus). Pass the four pipe radii and the borehole radius:
+``R_{12}`` (centre pipe ↔ annulus). Pass the four pipe radii and the borehole radius
+(``r_b > r_{oo} > r_{oi} > r_{io} > r_{ii}``):
 
 ```julia
-# rii/rio: inner-pipe inner/outer radius; roi/roo: outer-pipe inner/outer radius
+rii = 0.0247               # inner-pipe inner radius          [m]
+rio = 0.0301               # inner-pipe outer radius          [m]
+roi = 0.0487               # outer-pipe inner radius          [m]
+roo = 0.0572               # outer-pipe outer radius          [m]
+kpi = kp                   # inner-pipe conductivity (reuse the HDPE value from §2) [W/m·K]
+kpo = kp                   # outer-pipe conductivity                               [W/m·K]
+
 R1, R12 = resistance_coaxial(V, rii, rio, roi, roo, rb, kg, kpi, kpo, kf, cf, ρf, μf, ϵ)
 Rbe = resistance_coaxial_effective(V, H, cf, ρf, R1, R12; model = "UHF")
 ```

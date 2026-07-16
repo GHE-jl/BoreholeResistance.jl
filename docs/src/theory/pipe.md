@@ -5,7 +5,7 @@ radial conduction through a cylindrical shell of inner radius ``r_i`` and outer 
 made of a material with conductivity ``k_p``, the steady-state resistance per unit length is
 
 ```math
-R_p = \frac{\ln(r_o / r_i)}{2\pi\,k_p}.
+R_p = \frac{\ln(r_o / r_i)}{2\pi k_p}.
 ```
 
 This is the textbook cylindrical-shell result (Bergman & Incropera, 2011; Lamarche, 2023). It

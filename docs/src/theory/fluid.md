@@ -4,7 +4,7 @@ The fluid convective resistance ``R_f`` accounts for the boundary layer between 
 fluid and the inner pipe wall. Computing it requires the convective heat transfer coefficient,
 which in turn follows from the flow regime through the Reynolds, Prandtl and Nusselt numbers.
 This page covers the full chain, all implemented in
-[`resistance_fluid.jl`](https://github.com/GeothermalJL/BoreholeResistance.jl/blob/master/src/resistance_fluid.jl).
+[`resistance_fluid.jl`](https://github.com/GHE-jl/BoreholeResistance.jl/blob/master/src/resistance_fluid.jl).
 
 ## Reynolds number
 
@@ -15,9 +15,9 @@ is the hydraulic diameter ``D = 2r``:
 Re = \frac{\rho_f \, \dot V \, D}{\mu_f} = \frac{2 r \, \rho_f \, \dot V}{\mu_f},
 ```
 
-where ``\dot V`` is the **mean fluid speed** in m/s (not the volumetric flow rate), ``r`` the
+where ``\dot{V}`` is the **mean fluid speed** in m/s (not the volumetric flow rate ``V``), ``r`` the
 pipe inner radius, ``\rho_f`` the density and ``\mu_f`` the dynamic viscosity. The same formula
-applies to an annular channel by using its hydraulic radius ``r = r_b - r_o``. See
+applies to an annular pipe system by using its hydraulic radius ``r = r_b - r_o``. See
 [`Reynolds`](@ref).
 
 ## Prandtl number
@@ -63,7 +63,7 @@ under typical GHE flow conditions — convenient where many evaluations are need
 
 ## Nusselt number — Gnielinski correlation
 
-The Nusselt number ``Nu = h\,D / k_f`` gives the convective coefficient ``h``. The package uses
+The Nusselt number ``Nu = hD / k_f`` gives the convective coefficient ``h``. The package uses
 the Gnielinski framework with explicit handling of the three regimes (Lamarche, 2023):
 
 ```math

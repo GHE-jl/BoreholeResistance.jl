@@ -26,11 +26,11 @@ viscosity).
 
 `water_cp` returns the **mass-specific** heat ``c_f`` [J/kg·K]. The resistance functions in this
 package take ``c_f`` and ``\rho_f`` as separate arguments. Models that need the **volumetric**
-specific heat ``C_f`` [J/m³·K] — notably the moving-source models in `GroundResponse.jl` and
-the fluid-temperature routines in `GroundHeatExchanger.jl` — require the explicit product:
+specific heat ``C_f`` [J/m³·K], notably the moving-source models in `GroundResponse.jl` and
+the fluid-temperature routines in `GroundHeatExchanger.jl`, require the explicit product:
 
 ```math
-C_f = c_f \, \rho_f = \texttt{water\_cp(T)} \times \texttt{water\_ρ(T)}.
+C_f = c_f \rho_f = \texttt{water\_cp(T)} \times \texttt{water\_ρ(T)}.
 ```
 
 Keep track of which convention a downstream function expects when crossing package boundaries.

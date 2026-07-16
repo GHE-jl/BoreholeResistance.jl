@@ -135,7 +135,7 @@ resistance_coaxial_effective(V, H, rii, rio, roi, roo, rb, kg, kpi, kpo, kf, cf,
 `"UHF_gradient"` needs no extra numeric input, but is only valid for the flow-direction/heat-mode
 pairing that is *unfavorable* for the far-field gradient's sign (e.g. heat injection with
 "annulus-in" when the far-field temperature increases with depth) — see the
-[`resistance_coaxial_effective`](https://github.com/GeothermalJL/BoreholeResistance.jl/blob/master/src/resistance_borehole.jl)
+[`resistance_coaxial_effective`](https://github.com/GHE-jl/BoreholeResistance.jl/blob/master/src/resistance_borehole.jl)
 docstring for the full applicability rule. It is a distinct closed form, not a generalization of
 `"UHF"`, and does not reduce to it in the absence of a gradient.
 
@@ -160,13 +160,13 @@ The package is not yet registered. Install directly from the repository:
 
 ```julia
 using Pkg
-Pkg.add(url = "https://github.com/GeothermalJL/BoreholeResistance.jl")
+Pkg.add(url = "https://github.com/GHE-jl/BoreholeResistance.jl")
 ```
 
 Or in the Julia REPL package manager (`]`):
 
 ```
-pkg> add https://github.com/GeothermalJL/BoreholeResistance.jl
+pkg> add https://github.com/GHE-jl/BoreholeResistance.jl
 ```
 
 ## Dependencies

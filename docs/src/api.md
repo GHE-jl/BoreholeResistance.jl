@@ -18,8 +18,8 @@ Modules = [BoreholeResistance]
 ### Thermal resistances
 
 - [`convection_coefficient`](@ref) — convective heat transfer coefficient ``h``
-- [`resistance_fluid`](@ref) — fluid convection
-- [`resistance_pipe`](@ref) — pipe wall conduction
+- [`resistance_fluid`](@ref) — fluid convection ``R_f``
+- [`resistance_pipe`](@ref) — pipe wall conduction ``R_p``
 - [`resistance_ULoop_borehole`](@ref) — borehole resistance ``R_b``
 - [`resistance_ULoop_total_internal`](@ref) — total internal resistance ``R_a``
 - [`resistance_ULoop_effective`](@ref) — effective resistance ``R_b^*``

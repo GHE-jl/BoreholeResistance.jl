@@ -14,7 +14,7 @@ makedocs(;
     authors = "Gabriel-Dion <dion.gabriel100@gmail.com>",
     sitename = "BoreholeResistance.jl",
     format = Documenter.HTML(;
-        canonical = "https://GeothermalJL.github.io/BoreholeResistance.jl",
+        canonical = "https://GHE-jl.github.io/BoreholeResistance.jl",
         edit_link = "master",
         assets = String[],
         mathengine = Documenter.KaTeX(),
@@ -39,6 +39,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo = "github.com/GeothermalJL/BoreholeResistance.jl",
+    repo = "github.com/GHE-jl/BoreholeResistance.jl",
     devbranch = "master",
 )
