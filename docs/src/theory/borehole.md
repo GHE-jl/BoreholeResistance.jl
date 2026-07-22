@@ -6,7 +6,7 @@ interact, the grout step is solved with the **multipole method** of Hellström (
 explicit form given by Javed & Spitler (2017) for single U-tubes and Claesson & Javed (2019)
 for double U-tubes. The same machinery also yields the **total internal resistance** ``R_a``
 between the two legs. Both are implemented in
-[`resistance_borehole.jl`](https://github.com/GHE-jl/BoreholeResistance.jl/blob/master/src/resistance_borehole.jl).
+[`resistance_borehole.jl`](https://github.com/GHE-jl/BoreholeResistance.jl/blob/main/src/resistance_borehole.jl).
 
 ## Common dimensionless groups
 

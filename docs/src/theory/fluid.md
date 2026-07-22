@@ -4,7 +4,7 @@ The fluid convective resistance ``R_f`` accounts for the boundary layer between 
 fluid and the inner pipe wall. Computing it requires the convective heat transfer coefficient,
 which in turn follows from the flow regime through the Reynolds, Prandtl and Nusselt numbers.
 This page covers the full chain, all implemented in
-[`resistance_fluid.jl`](https://github.com/GHE-jl/BoreholeResistance.jl/blob/master/src/resistance_fluid.jl).
+[`resistance_fluid.jl`](https://github.com/GHE-jl/BoreholeResistance.jl/blob/main/src/resistance_fluid.jl).
 
 ## Reynolds number
 

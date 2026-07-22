@@ -15,7 +15,7 @@ makedocs(;
     sitename = "BoreholeResistance.jl",
     format = Documenter.HTML(;
         canonical = "https://GHE-jl.github.io/BoreholeResistance.jl",
-        edit_link = "master",
+        edit_link = "main",
         assets = String[],
         mathengine = Documenter.KaTeX(),
         sidebar_sitename = false,
@@ -40,5 +40,5 @@ makedocs(;
 
 deploydocs(;
     repo = "github.com/GHE-jl/BoreholeResistance.jl",
-    devbranch = "master",
+    devbranch = "main",
 )
