@@ -303,4 +303,58 @@ using BoreholeResistance
         @test Rbe_grad_short ≈ Rbe_grad_full
     end
 
+    # testing the density calculation of fluid_property
+    @testset "fluid density (fluid_property) - Enginering Toolbox" begin
+        
+        # for 10% propylene glycol 
+        ρ1_ref = 1012 # 273.15 K
+        ρ2_ref = 998 # 313.15 K
+        ρ3_ref = 976 # 353.15 K
+        ρ4_ref = 965 # 373.15 K
+
+        # for 30% propylene glycol 
+        ρ5_ref = 1031 # 273.15 K
+        ρ6_ref = 1010 # 313.15 K
+        ρ7_ref = 983 # 353.15 K
+        ρ8_ref = 969 # 373.15 K
+
+        # for 60% propylene glycol 
+        ρ9_ref = 1061 # 273.15 K
+        ρ10_ref = 1029 # 313.15 K
+        ρ11_ref = 994 # 353.15 K
+        ρ12_ref = 976 # 373.15 K
+
+
+        _,_, ρ1, _ = fluid_property(273.15, :MPG; percentage= 10)
+        _,_, ρ2, _ = fluid_property(313.15, :MPG; percentage= 10)
+        _,_, ρ3, _ = fluid_property(353.15, :MPG; percentage= 10)
+        _,_, ρ4, _ = fluid_property(373.15, :MPG; percentage= 10)
+
+        _,_, ρ5, _ = fluid_property(273.15, :MPG; percentage= 30)
+        _,_, ρ6, _ = fluid_property(313.15, :MPG; percentage= 30)
+        _,_, ρ7, _ = fluid_property(353.15, :MPG; percentage= 30)
+        _,_, ρ8, _ = fluid_property(373.15, :MPG; percentage= 30)
+
+        _,_, ρ9, _ = fluid_property(273.15, :MPG; percentage= 60)
+        _,_, ρ10, _ = fluid_property(313.15, :MPG; percentage= 60)
+        _,_, ρ11, _ = fluid_property(353.15, :MPG; percentage= 60)
+        _,_, ρ12, _ = fluid_property(373.15, :MPG; percentage= 60)
+
+
+        @test ρ1_ref ≈ ρ1 rtol = 1e-2
+        @test ρ2_ref ≈ ρ2 rtol = 1e-2
+        @test ρ3_ref ≈ ρ3 rtol = 1e-2
+        @test ρ4_ref ≈ ρ4 rtol = 1e-2
+
+        @test ρ5_ref ≈ ρ5 rtol = 1e-2
+        @test ρ6_ref ≈ ρ6 rtol = 1e-2
+        @test ρ7_ref ≈ ρ7 rtol = 1e-2
+        @test ρ8_ref ≈ ρ8 rtol = 1e-2
+
+        @test ρ9_ref ≈ ρ9 rtol = 1e-2
+        @test ρ10_ref ≈ ρ10 rtol = 1e-2
+        @test ρ11_ref ≈ ρ11 rtol = 1e-2
+        @test ρ12_ref ≈ ρ12 rtol = 1e-2
+    end
+
 end
