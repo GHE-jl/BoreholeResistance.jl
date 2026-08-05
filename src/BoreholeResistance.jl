@@ -9,6 +9,8 @@ include("resistance_borehole.jl")
 
 # Fluid properties and pipe flow utilities
 include("utils.jl")
+# Fluid properties from CoolProp (water, MPG, MEG mixtures)
+include("fluid_property.jl")
 
 # Fluid resistance exports
 export Reynolds, Prandtl, Nusselt, Nusselt_annulus,
@@ -24,6 +26,6 @@ export resistance_ULoop_borehole, resistance_ULoop_total_internal,
     resistance_coaxial, resistance_coaxial_effective
 
 # Utility exports
-export water_ρ, water_cp, water_k, water_μ
+export water_ρ, water_cp, water_k, water_μ, fluid_property
 
 end
