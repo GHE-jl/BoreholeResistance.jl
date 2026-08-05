@@ -48,6 +48,20 @@ cf = water_cp(T0)         # ≈ 4192   J/kg·K
 Cf = cf * ρf              # volumetric specific heat [J/m³·K]
 ```
 
+## Antifreeze mixtures (CoolProp)
+
+The polynomial fits above only cover pure water. For antifreeze mixtures — aqueous propylene
+glycol (`:MPG`) or ethylene glycol (`:MEG`) — [`fluid_property`](@ref) wraps
+[CoolProp](https://coolprop.org/fluid_properties/Incompressibles.html) to return all four
+properties (``k``, volumetric heat capacity, ``\rho``, ``\mu``) at once, given a temperature in
+kelvin and an optional mass concentration.
+
+```julia
+using BoreholeResistance
+
+k, Cs, ρ, μ = fluid_property(273.15, :MPG; percentage = 30)
+```
+
 ## Functions on this page
 
 ```@docs
@@ -55,4 +69,5 @@ water_k
 water_cp
 water_ρ
 water_μ
+fluid_property
 ```

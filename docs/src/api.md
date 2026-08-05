@@ -29,6 +29,7 @@ Modules = [BoreholeResistance]
 ### Water property functions
 
 - [`water_k`](@ref), [`water_cp`](@ref), [`water_ρ`](@ref), [`water_μ`](@ref)
+- [`fluid_property`](@ref) — water/MPG/MEG properties via CoolProp
 
 !!! tip "Where the docstrings live"
     Full signatures and argument lists are rendered inline on the theory pages:
