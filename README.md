@@ -3,7 +3,7 @@
 [![CI](https://github.com/GHE-jl/BoreholeResistance.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/GHE-jl/BoreholeResistance.jl/actions/workflows/CI.yml)
 [![Docs: dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://GHE-jl.github.io/BoreholeResistance.jl/dev)
 [![Docs: stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://GHE-jl.github.io/BoreholeResistance.jl/stable)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
 A Julia package for computing borehole thermal resistances in ground heat exchanger (GHE) systems. Provides fluid, pipe, and grout resistances using the multipole method, along with water thermophysical property functions.
 
