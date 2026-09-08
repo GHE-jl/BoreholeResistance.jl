@@ -65,8 +65,8 @@ println("=== Flow-rate sweep ===")
 println(rpad("V [L/min]", 12), " ", rpad("Re", 8), " ", rpad("Nu_pipe", 14), " ",
         rpad("Nu_annulus", 14), " ", "ratio")
 for Q_Lmin in [5.0, 10.0, 15.0, 20.0, 30.0, 50.0, 80.0, 120.0]
-    V  = Q_Lmin / 1000 / 60
-    V̇ = V / A_annulus
+    local V  = Q_Lmin / 1000 / 60
+    local V̇ = V / A_annulus
     Re = Reynolds(V̇, r_h, ρf, μf)
     Pr = Prandtl(kf, cf, μf)
     Nu1 = Nusselt(Re, Pr, r_h, ϵ)
