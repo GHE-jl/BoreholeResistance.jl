@@ -53,7 +53,7 @@ using BoreholeResistance
 
 # Fluid properties of water at 10 °C
 T0 = 10.0
-kf = water_k(T0);  cf = water_cp(T0);  ρf = water_ρ(T0);  μf = water_μ(T0)
+kf, cf, ρf, μf = fluid_property(T0, :water)
 
 # Geometry [m] and material conductivities [W/m·K]
 H, s, rb, ro, ri = 150.0, 0.05, 0.08, 0.022, 0.017
@@ -76,7 +76,8 @@ Rb = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μ
     and the two-resistance network for the coaxial configuration.
   - [Effective resistance](@ref) — ``R_b^*`` and thermal short-circuiting, for U-tubes and for
     the coaxial configuration.
-- **[Water properties](@ref)** — the polynomial correlations and their validity range.
+- **[Fluid properties](@ref)** — `fluid_property` (water and antifreeze mixtures via CoolProp)
+  and the legacy polynomial correlations.
 - **[API reference](@ref)** — the complete docstring reference for every exported function.
 - **[References](@ref)** — the bibliography underpinning the implementation.
 
@@ -99,7 +100,8 @@ Rb = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μ
 | ``r_{ii}, r_{io}, r_{oi}, r_{oo}`` | Coaxial inner/outer radii of the inner and outer pipe | m |
 
 !!! note "Heat-capacity convention"
-    `water_cp(T)` returns the **mass-specific** heat ``c_f`` [J/kg·K]. The resistance functions
+    `fluid_property` returns the **mass-specific** heat ``c_f`` [J/kg·K] as its second output.
+    The resistance functions
     take ``c_f`` and ``\rho_f`` separately. The **volumetric** specific heat
     ``C_f = c_f \rho_f`` [J/m³·K] is what downstream moving-source models in the ecosystem
     consume, convert explicitly when crossing that boundary.
@@ -110,7 +112,7 @@ Rb = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μ
 
 | Package | Role |
 |---|---|
-| **BoreholeResistance.jl** | Water properties + borehole thermal resistances (this package). |
+| **BoreholeResistance.jl** | Fluid properties + borehole thermal resistances (this package). |
 | **GroundResponse.jl** | Ground *g*-function models and spatial superposition. |
 | **GroundHeatExchanger.jl** | Simulation orchestration; depends on and re-exports both. |
 

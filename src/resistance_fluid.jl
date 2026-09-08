@@ -2,13 +2,13 @@
     Reynolds(V̇, r, ρf, μf)
 
 Reynolds number of a fluid flowing in a pipe. Parameters `ρf` and `μf` depend on the fluid
-temperature, and can be computed with functions `water_ρ` and `water_μ` respectively. This function
+temperature, and can be computed with [`fluid_property`](@ref). This function
 is valid for both cylinder pipes and annulus regions.
 # Arguments
     - `V̇`: Fluid *speed* in pipe [m/s]
     - `r`: Pipe inside or annulus (r = rb - ro) radius [m]
-    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
-    - `μf`: Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
+    - `ρf`: Fluid density [kg/m³] (see [`fluid_property`](@ref))
+    - `μf`: Fluid viscosity [kg/m⋅s] (see [`fluid_property`](@ref))
 # Output
     - `Re`: Reynolds number [-]
 """
@@ -21,13 +21,13 @@ end
     Prandtl(kf, Cf, ρf, μf)
 
 Prandtl number of a fluid flowing in a pipe. Parameters `kf`, `cf`, and `μf` depend on the fluid
-temperature, and can be computed with functions `water_cp`, `water_μ` and `water_k` respectively.
+temperature, and can be computed with [`fluid_property`](@ref).
 # Arguments
-    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `Cf`: Fluid volumetric specific heat [J/m³K] (`water_cp(T) * water_ρ(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
-    - `μf`: Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
+    - `kf`: Fluid thermal conductivity [W/mK] (see [`fluid_property`](@ref))
+    - `Cf`: Fluid volumetric specific heat [J/m³K] (`cp * ρ` from [`fluid_property`](@ref))
+    - `cf`: Fluid specific heat [J/kgK] (see [`fluid_property`](@ref))
+    - `ρf`: Fluid density [kg/m³] (see [`fluid_property`](@ref))
+    - `μf`: Fluid viscosity [kg/m⋅s] (see [`fluid_property`](@ref))
 # Output
     - `Pr`: Prandtl number [-]
 """
@@ -112,10 +112,10 @@ flowing in a cylinder pipe, or in an annulus region.
     - `Pr`: Prandtl number [-]
     - `V̇`: Fluid *speed* in pipe [m/s]
     - `r`: Pipe inside or annulus (r = rb - ro) radius [m]
-    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
-    - `μf`: Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
+    - `kf`: Fluid thermal conductivity [W/mK] (see [`fluid_property`](@ref))
+    - `cf`: Fluid specific heat [J/kgK] (see [`fluid_property`](@ref))
+    - `ρf`: Fluid density [kg/m³] (see [`fluid_property`](@ref))
+    - `μf`: Fluid viscosity [kg/m⋅s] (see [`fluid_property`](@ref))
     - `ϵ`: Pipe roughness [m] (default 5e-6 for HDPE pipes)
 # Output
     - `Nu`: Nusselt number [-]
@@ -156,10 +156,10 @@ based on the Gnielinski correlation, which is valid for laminar, transition and 
     - `V̇`: Fluid *speed* in pipe [m/s]
     - `rb`: Outer radius of the annulus region [m]
     - `ro`: Inner radius of the annulus region [m]
-    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
-    - `μf`: Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
+    - `kf`: Fluid thermal conductivity [W/mK] (see [`fluid_property`](@ref))
+    - `cf`: Fluid specific heat [J/kgK] (see [`fluid_property`](@ref))
+    - `ρf`: Fluid density [kg/m³] (see [`fluid_property`](@ref))
+    - `μf`: Fluid viscosity [kg/m⋅s] (see [`fluid_property`](@ref))
     - `ϵo`: Outer pipe roughness [m] (default 5e-6 for HDPE pipes)
     - `ϵi`: Inner pipe roughness [m] (default 5e-6 for HDPE pipes)
     # Output
@@ -206,10 +206,10 @@ Convective heat transfer coefficient of a fluid flowing in a single cylinder pip
     - `Nu`: Nusselt number [-]
     - `V̇`: Fluid *speed* in pipe [m/s]
     - `r`: Pipe inner radius [m]
-    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
-    - `μf`: Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
+    - `kf`: Fluid thermal conductivity [W/mK] (see [`fluid_property`](@ref))
+    - `cf`: Fluid specific heat [J/kgK] (see [`fluid_property`](@ref))
+    - `ρf`: Fluid density [kg/m³] (see [`fluid_property`](@ref))
+    - `μf`: Fluid viscosity [kg/m⋅s] (see [`fluid_property`](@ref))
     - `ϵ`: Pipe roughness [m] (default 5e-6 for HDPE pipes)
 # Output
     - `h`: Convective heat transfer coefficient [W/m²K]
@@ -233,10 +233,10 @@ Convective thermal resistance of a fluid flowing in a single cylinder pipe.
     - `Nu`: Nusselt number [-]
     - `V̇`: Fluid *speed* in pipe [m/s]
     - `r`: Pipe inner radius [m]
-    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
-    - `μf`: Fluid viscosity [kg/m⋅s] (`water_μ(T)`)
+    - `kf`: Fluid thermal conductivity [W/mK] (see [`fluid_property`](@ref))
+    - `cf`: Fluid specific heat [J/kgK] (see [`fluid_property`](@ref))
+    - `ρf`: Fluid density [kg/m³] (see [`fluid_property`](@ref))
+    - `μf`: Fluid viscosity [kg/m⋅s] (see [`fluid_property`](@ref))
     - `ϵ`: Pipe roughness [m] (default 5e-6 for HDPE pipes)
 # Output
     - `Rf`: Fluid convective thermal resistance [mK/W]

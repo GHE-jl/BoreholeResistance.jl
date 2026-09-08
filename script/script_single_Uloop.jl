@@ -69,10 +69,7 @@ kg = 1.0            # Grout thermal conductivity [W/mK]
 kp = 0.4            # Pipe thermal conductivity [W/mK]
 ϵ  = 5e-6           # Pipe roughness [m]
 
-kf = water_k(T0)
-cf = water_cp(T0)
-ρf = water_ρ(T0)
-μf = water_μ(T0)
+kf, cf, ρf, μf = fluid_property(T0, :water)
 
 V_nom  = 15.0 / 1000 / 60           # 15 L/min in m³/s
 V̇_nom = V_nom / (π * ri^2)          # Mean fluid speed [m/s]

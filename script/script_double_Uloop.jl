@@ -153,7 +153,7 @@ println()
 rb2, ro2, ri2 = 0.075, 0.020, 0.0164
 s2, ks2, kg2  = 0.08, 2.0, 1.0
 kp2, ϵ2, T0   = 0.4, 5e-6, 10.0
-kf = water_k(T0); cf2 = water_cp(T0); ρf2 = water_ρ(T0); μf = water_μ(T0)
+kf, cf2, ρf2, μf = fluid_property(T0, :water)
 V2 = 15.0 / 1000 / 60                         # per-loop flow [m³/s]
 Rp2 = resistance_pipe(ro2, ri2, kp2)
 Rf2 = resistance_fluid(V2 / (π * ri2^2), ri2, kf, cf2, ρf2, μf, ϵ2)

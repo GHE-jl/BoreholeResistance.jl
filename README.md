@@ -5,7 +5,7 @@
 [![Docs: stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://GHE-jl.github.io/BoreholeResistance.jl/stable)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-A Julia package for computing borehole thermal resistances in ground heat exchanger (GHE) systems. Provides fluid, pipe, and grout resistances using the multipole method, along with water thermophysical property functions.
+A Julia package for computing borehole thermal resistances in ground heat exchanger (GHE) systems. Provides fluid, pipe, and grout resistances using the multipole method, along with fluid thermophysical property functions (water and antifreeze mixtures via CoolProp).
 
 ## Quick start
 
@@ -13,7 +13,7 @@ A Julia package for computing borehole thermal resistances in ground heat exchan
 using BoreholeResistance
 
 T0 = 10.0
-kf = water_k(T0);  cf = water_cp(T0);  ρf = water_ρ(T0);  μf = water_μ(T0)
+kf, cf, ρf, μf = fluid_property(T0, :water)
 
 H, s, rb, ro, ri = 150.0, 0.05, 0.08, 0.022, 0.017
 ks, kg, kp = 3.0, 1.6, 0.4
@@ -22,21 +22,29 @@ V = 30/6e4   # 30 L/min in m³/s
 Rb  = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf)
 ```
 
-## Water thermophysical properties
+## Fluid thermophysical properties
 
-Polynomial fits to Engineering Toolbox data, valid 0–100°C at 1 atm:
+[`fluid_property(T, fluid; percentage)`](https://GHE-jl.github.io/BoreholeResistance.jl/dev) wraps
+[CoolProp](https://coolprop.org/fluid_properties/Incompressibles.html) to return
+`(k, cp, ρ, μ)`, thermal conductivity [W/m·K], specific heat capacity [J/kg·K], density [kg/m³]
+and dynamic viscosity [Pa·s], for a temperature `T` in °C. `fluid` is `:water` (pure), or one of
+`:MPG`, `:MEG`, `:MMA`, `:MEA`, `:MKA`, `:MKF` (antifreeze mixtures), with `percentage`
+giving the mass fraction of the additive [%m]:
 
-| Function | Output | Unit |
-|---|---|---|
-| `water_k(T)` | Thermal conductivity | W/m·K |
-| `water_cp(T)` | Specific heat capacity | J/kg·K |
-| `water_ρ(T)` | Density | kg/m³ |
-| `water_μ(T)` | Dynamic viscosity | Pa·s |
+```julia
+kf, cf, ρf, μf = fluid_property(T0, :water)
+k, cp, ρ, μ = fluid_property(0.0, :MPG; percentage = 30)
+```
 
-**Convention:** `water_cp` returns mass-specific heat `cf` [J/kg·K]. The volumetric specific heat
-`Cf = water_cp(T) * water_ρ(T)` [J/m³·K] is needed separately for `outlet_temperature` /
-`inlet_temperature` in GroundHeatExchanger.jl. Borehole resistance functions take `cf` and `ρf`
-individually.
+**Convention:** `fluid_property` returns mass-specific heat `cp` [J/kg·K]. The volumetric specific
+heat `Cf = cp * ρ` [J/m³·K] is needed separately for `outlet_temperature` and `inlet_temperature` in
+GroundHeatExchanger.jl. Borehole resistance functions take `cf` and `ρf` individually.
+
+### Legacy polynomial fits (deprecated)
+
+`water_k(T)`, `water_cp(T)`, `water_ρ(T)`, `water_μ(T)` (standalone polynomial fits to
+Engineering Toolbox data for pure water valid 0–100°C at 1 atm) are **deprecated** in favor of
+`fluid_property(T, :water)`.
 
 ## Dimensionless numbers and friction factors
 
@@ -182,13 +190,12 @@ standard library.
 ## Integration with GroundHeatExchanger.jl
 
 `BoreholeResistance.jl` is a dependency of `GroundHeatExchanger.jl`. All resistance functions
-and water property functions are re-exported from the top-level package:
+and fluid property functions are re-exported from the top-level package:
 
 ```julia
 using GroundHeatExchanger   # pulls in BoreholeResistance + GroundResponse
 
-cf = water_cp(T0)           # specific heat [J/kg·K]
-ρf = water_ρ(T0)            # density [kg/m³]
+kf, cf, ρf, μf = fluid_property(T0, :water)
 Cf = cf * ρf                # volumetric specific heat [J/m³·K]
 
 Rb = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf)

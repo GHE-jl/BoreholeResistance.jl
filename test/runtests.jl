@@ -305,40 +305,40 @@ using BoreholeResistance
 
     # testing the density calculation of fluid_property
     @testset "fluid density (fluid_property) - Enginering Toolbox" begin
-        
-        # for 10% propylene glycol 
-        ρ1_ref = 1012 # 273.15 K
-        ρ2_ref = 998 # 313.15 K
-        ρ3_ref = 976 # 353.15 K
-        ρ4_ref = 965 # 373.15 K
 
-        # for 30% propylene glycol 
-        ρ5_ref = 1031 # 273.15 K
-        ρ6_ref = 1010 # 313.15 K
-        ρ7_ref = 983 # 353.15 K
-        ρ8_ref = 969 # 373.15 K
+        # for 10% propylene glycol
+        ρ1_ref = 1012 # 0 °C
+        ρ2_ref = 998 # 40 °C
+        ρ3_ref = 976 # 80 °C
+        ρ4_ref = 965 # 100 °C
 
-        # for 60% propylene glycol 
-        ρ9_ref = 1061 # 273.15 K
-        ρ10_ref = 1029 # 313.15 K
-        ρ11_ref = 994 # 353.15 K
-        ρ12_ref = 976 # 373.15 K
+        # for 30% propylene glycol
+        ρ5_ref = 1031 # 0 °C
+        ρ6_ref = 1010 # 40 °C
+        ρ7_ref = 983 # 80 °C
+        ρ8_ref = 969 # 100 °C
+
+        # for 60% propylene glycol
+        ρ9_ref = 1061 # 0 °C
+        ρ10_ref = 1029 # 40 °C
+        ρ11_ref = 994 # 80 °C
+        ρ12_ref = 976 # 100 °C
 
 
-        _,_, ρ1, _ = fluid_property(273.15, :MPG; percentage= 10)
-        _,_, ρ2, _ = fluid_property(313.15, :MPG; percentage= 10)
-        _,_, ρ3, _ = fluid_property(353.15, :MPG; percentage= 10)
-        _,_, ρ4, _ = fluid_property(373.15, :MPG; percentage= 10)
+        _,_, ρ1, _ = fluid_property(0.0, :MPG; percentage= 10)
+        _,_, ρ2, _ = fluid_property(40.0, :MPG; percentage= 10)
+        _,_, ρ3, _ = fluid_property(80.0, :MPG; percentage= 10)
+        _,_, ρ4, _ = fluid_property(100.0, :MPG; percentage= 10)
 
-        _,_, ρ5, _ = fluid_property(273.15, :MPG; percentage= 30)
-        _,_, ρ6, _ = fluid_property(313.15, :MPG; percentage= 30)
-        _,_, ρ7, _ = fluid_property(353.15, :MPG; percentage= 30)
-        _,_, ρ8, _ = fluid_property(373.15, :MPG; percentage= 30)
+        _,_, ρ5, _ = fluid_property(0.0, :MPG; percentage= 30)
+        _,_, ρ6, _ = fluid_property(40.0, :MPG; percentage= 30)
+        _,_, ρ7, _ = fluid_property(80.0, :MPG; percentage= 30)
+        _,_, ρ8, _ = fluid_property(100.0, :MPG; percentage= 30)
 
-        _,_, ρ9, _ = fluid_property(273.15, :MPG; percentage= 60)
-        _,_, ρ10, _ = fluid_property(313.15, :MPG; percentage= 60)
-        _,_, ρ11, _ = fluid_property(353.15, :MPG; percentage= 60)
-        _,_, ρ12, _ = fluid_property(373.15, :MPG; percentage= 60)
+        _,_, ρ9, _ = fluid_property(0.0, :MPG; percentage= 60)
+        _,_, ρ10, _ = fluid_property(40.0, :MPG; percentage= 60)
+        _,_, ρ11, _ = fluid_property(80.0, :MPG; percentage= 60)
+        _,_, ρ12, _ = fluid_property(100.0, :MPG; percentage= 60)
 
 
         @test ρ1_ref ≈ ρ1 rtol = 1e-2
@@ -355,6 +355,43 @@ using BoreholeResistance
         @test ρ10_ref ≈ ρ10 rtol = 1e-2
         @test ρ11_ref ≈ ρ11 rtol = 1e-2
         @test ρ12_ref ≈ ρ12 rtol = 1e-2
+    end
+
+    @testset "fluid_property(:water) vs water_ series" begin
+        # Stops short of 100 °C: at P = 100 kPa water's actual boiling point is ≈99.6 °C, above
+        # which CoolProp's equation of state switches to the vapor branch (see fluid_property.jl).
+        for T in 0.0:10.0:90.0
+            k, cp, ρ, μ = fluid_property(T, :water)
+            @test k  ≈ water_k(T)  rtol = 5e-3
+            @test cp ≈ water_cp(T) rtol = 5e-3
+            @test ρ  ≈ water_ρ(T)  rtol = 5e-3
+            @test μ  ≈ water_μ(T)  rtol = 2e-2
+        end
+    end
+
+    @testset "fluid_property error handling" begin
+        # Unsupported fluid symbol must error, never silently fall back to water
+        @test_throws ErrorException fluid_property(20.0, :notafluid)
+
+        # Out-of-composition-range mixture request must error (CoolProp's own bound)
+        @test_throws Exception fluid_property(20.0, :MPG; percentage=90)
+
+        # Fractional percentages are supported (not restricted to integers)
+        k, cp, ρ, μ = fluid_property(20.0, :MPG; percentage=25.5)
+        @test ρ > 0
+
+        # Out-of-range water temperature warns but still returns CoolProp's value
+        @test (@test_logs (:warn,) match_mode=:any fluid_property(150.0, :water)) !== nothing
+    end
+
+    @testset "fluid_property additional mixtures (sanity)" begin
+        for f in (:MPG, :MEG, :MMA, :MEA, :MKA, :MKF)
+            k, cp, ρ, μ = fluid_property(20.0, f; percentage=30)
+            @test k > 0
+            @test cp > 0
+            @test ρ > 0
+            @test μ > 0
+        end
     end
 
 end

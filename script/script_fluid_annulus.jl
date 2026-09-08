@@ -11,10 +11,7 @@ ro = 0.030       # Inner pipe outer radius = inner annulus radius [m]
 T0 = 10.0        # Reference fluid temperature [°C]
 ϵ  = 5e-6        # Pipe roughness [m]
 
-kf = water_k(T0)
-cf = water_cp(T0)
-ρf = water_ρ(T0)
-μf = water_μ(T0)
+kf, cf, ρf, μf = fluid_property(T0, :water)
 
 r_h = rb - ro                   # Annulus hydraulic radius = D_h / 2 [m]
 A_annulus = π * (rb^2 - ro^2)   # Annulus cross-sectional area [m²]

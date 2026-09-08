@@ -22,10 +22,7 @@ ks  = 2.5               # Ground thermal conductivity [W/mK]
 T0  = 10.0              # Reference fluid temperature [°C]
 ṁ  = 3.25               # Mass flow rate [kg/s]
 
-kf = water_k(T0)
-cf = water_cp(T0)
-ρf = water_ρ(T0)
-μf = water_μ(T0)
+kf, cf, ρf, μf = fluid_property(T0, :water)
 
 V_nom = ṁ / ρf       # Volumetric flow rate [m³/s]
 

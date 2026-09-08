@@ -52,5 +52,5 @@ The models implemented in this package are drawn from the following sources.
 ## Thermophysical property data
 
 - **The Engineering ToolBox.** Temperature-dependent data for the thermal conductivity, specific
-  heat, density and dynamic viscosity of liquid water, to which the polynomial fits in
-  [Water properties](@ref) were calibrated. <https://www.engineeringtoolbox.com>
+  heat, density and dynamic viscosity of liquid water, to which the legacy polynomial fits in
+  [Fluid properties](@ref) were calibrated. <https://www.engineeringtoolbox.com>

@@ -6,21 +6,20 @@ function used here is documented in the [API reference](@ref).
 
 ## 1. Fluid properties
 
-All correlations take the mean fluid temperature in degrees Celsius and return SI units. Pick
-a representative loop temperature (here 10 °C) and evaluate the four properties needed by the
-resistance functions:
+[`fluid_property`](@ref) takes the mean fluid temperature in degrees Celsius and a fluid symbol,
+and returns the four SI-unit properties needed by the resistance functions. Pick a representative
+loop temperature (here 10 °C):
 
 ```julia
 using BoreholeResistance
 
-T0 = 10.0                 # mean fluid temperature [°C]
-kf = water_k(T0)          # thermal conductivity   [W/m·K]
-cf = water_cp(T0)         # specific heat           [J/kg·K]
-ρf = water_ρ(T0)          # density                 [kg/m³]
-μf = water_μ(T0)          # dynamic viscosity       [Pa·s]
+T0 = 10.0                              # mean fluid temperature [°C]
+kf, cf, ρf, μf = fluid_property(T0, :water)
+# kf: thermal conductivity [W/m·K], cf: specific heat [J/kg·K],
+# ρf: density [kg/m³],              μf: dynamic viscosity [Pa·s]
 ```
 
-See [Water properties](@ref) for the underlying correlations and their validity range.
+See [Fluid properties](@ref) for antifreeze mixtures and the legacy polynomial correlations.
 
 ## 2. Geometry and flow
 

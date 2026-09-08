@@ -26,13 +26,14 @@ Modules = [BoreholeResistance]
 - [`resistance_coaxial`](@ref) — coaxial resistances ``R_1``, ``R_{12}``
 - [`resistance_coaxial_effective`](@ref) — coaxial effective resistance ``R_b^*``
 
-### Water property functions
+### Fluid property functions
 
-- [`water_k`](@ref), [`water_cp`](@ref), [`water_ρ`](@ref), [`water_μ`](@ref)
-- [`fluid_property`](@ref) — water/MPG/MEG properties via CoolProp
+- [`fluid_property`](@ref) — water and antifreeze mixture properties via CoolProp
+- [`water_k`](@ref), [`water_cp`](@ref), [`water_ρ`](@ref), [`water_μ`](@ref) — deprecated, use
+  [`fluid_property`](@ref) instead
 
 !!! tip "Where the docstrings live"
     Full signatures and argument lists are rendered inline on the theory pages:
     [Fluid convective resistance](@ref), [Pipe conductive resistance](@ref),
     [Borehole (grout) resistance](@ref), [Effective resistance](@ref) and
-    [Water properties](@ref).
+    [Fluid properties](@ref).

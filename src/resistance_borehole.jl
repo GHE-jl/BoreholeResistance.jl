@@ -19,10 +19,10 @@ Note: To obtain only the grout thermal resistance, set `Rp` and `Rf` as 0.0.
     - `ks`: Ground thermal conductivity [W/mK]
     - `kg`: Grout thermal conductivity [W/mK]
     - `kp`: Pipe thermal conductivity [W/mK]
-    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
-    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_μ(T)`)
+    - `kf`: Fluid thermal conductivity [W/mK] (see [`fluid_property`](@ref))
+    - `cf`: Fluid specific heat [J/kgK] (see [`fluid_property`](@ref))
+    - `ρf`: Fluid density [kg/m³] (see [`fluid_property`](@ref))
+    - `μf`: Fluid dynamic viscosity [kg/m/s] (see [`fluid_property`](@ref))
     - `ϵ`: Pipe roughness [m] (default 0.0)
     - `Rp`: Pipe thermal resistance [mK/W]
     - `Rf`: Fluid thermal resistance [mK/W]
@@ -122,10 +122,10 @@ or Rbₑ).
     - `ks`: Ground thermal conductivity [W/mK]
     - `kg`: Grout thermal conductivity [W/mK]
     - `kp`: Pipe thermal conductivity [W/mK]
-    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
-    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_μ(T)`)
+    - `kf`: Fluid thermal conductivity [W/mK] (see [`fluid_property`](@ref))
+    - `cf`: Fluid specific heat [J/kgK] (see [`fluid_property`](@ref))
+    - `ρf`: Fluid density [kg/m³] (see [`fluid_property`](@ref))
+    - `μf`: Fluid dynamic viscosity [kg/m/s] (see [`fluid_property`](@ref))
     - `ϵ`: Pipe roughness [m] (default 0.0)
     - `Rp`: Pipe thermal resistance [mK/W]
     - `Rf`: Fluid thermal resistance [mK/W]
@@ -262,10 +262,10 @@ system flow is therefore `2·V` — pass the per-loop flow, not the total.
     - `ks`: Ground thermal conductivity [W/mK]
     - `kg`: Grout thermal conductivity [W/mK]
     - `kp`: Pipe thermal conductivity [W/mK]
-    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
-    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_μ(T)`)
+    - `kf`: Fluid thermal conductivity [W/mK] (see [`fluid_property`](@ref))
+    - `cf`: Fluid specific heat [J/kgK] (see [`fluid_property`](@ref))
+    - `ρf`: Fluid density [kg/m³] (see [`fluid_property`](@ref))
+    - `μf`: Fluid dynamic viscosity [kg/m/s] (see [`fluid_property`](@ref))
     - `Rb`: Borehole thermal resistance [mK/W]
     - `Ra`: Total internal thermal resistance [mK/W]
     - `ϵ`: Pipe roughness [m] (default 0.0)
@@ -362,10 +362,10 @@ is also the (steady) borehole resistance `Rb` of a coaxial exchanger. Both flow 
     - `kg`: Grout thermal conductivity (if present) [W/mK]
     - `kpi`: Inner pipe thermal conductivity [W/mK]
     - `kpo`: Outer pipe thermal conductivity [W/mK]
-    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
-    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_μ(T)`)
+    - `kf`: Fluid thermal conductivity [W/mK] (see [`fluid_property`](@ref))
+    - `cf`: Fluid specific heat [J/kgK] (see [`fluid_property`](@ref))
+    - `ρf`: Fluid density [kg/m³] (see [`fluid_property`](@ref))
+    - `μf`: Fluid dynamic viscosity [kg/m/s] (see [`fluid_property`](@ref))
     - `ϵ`: Pipe roughness [m] (default 0.0)
     - `hin`: Convection coefficient inside the inner (center) pipe [W/m²K]
     - `hann`: Convection coefficient in the annulus region [W/m²K]
@@ -432,10 +432,10 @@ a gradient).
     - `kg`: Grout thermal conductivity (if present) [W/mK]
     - `kpi`: Inner pipe thermal conductivity [W/mK]
     - `kpo`: Outer pipe thermal conductivity [W/mK]
-    - `kf`: Fluid thermal conductivity [W/mK] (`water_k(T)`)
-    - `cf`: Fluid specific heat [J/kgK] (`water_cp(T)`)
-    - `ρf`: Fluid density [kg/m³] (`water_ρ(T)`)
-    - `μf`: Fluid dynamic viscosity [kg/m/s] (`water_μ(T)`)
+    - `kf`: Fluid thermal conductivity [W/mK] (see [`fluid_property`](@ref))
+    - `cf`: Fluid specific heat [J/kgK] (see [`fluid_property`](@ref))
+    - `ρf`: Fluid density [kg/m³] (see [`fluid_property`](@ref))
+    - `μf`: Fluid dynamic viscosity [kg/m/s] (see [`fluid_property`](@ref))
     - `ϵ`: Pipe roughness [m] (default 0.0)
     - `R1`: Annulus-to-borehole-wall resistance (coaxial `Rb`) [mK/W]
     - `R12`: Center-to-annulus internal resistance [mK/W]

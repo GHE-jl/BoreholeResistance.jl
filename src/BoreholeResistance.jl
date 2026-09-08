@@ -7,9 +7,8 @@ include("resistance_pipe.jl")
 # Borehole thermal resistance (multipole method) and effective resistance
 include("resistance_borehole.jl")
 
-# Fluid properties and pipe flow utilities
-include("utils.jl")
-# Fluid properties from CoolProp (water, MPG, MEG mixtures)
+# Fluid properties from CoolProp (water and antifreeze mixtures), plus legacy deprecated
+# polynomial fits (water_k, water_cp, water_ρ, water_μ)
 include("fluid_property.jl")
 
 # Fluid resistance exports
@@ -25,7 +24,9 @@ export resistance_ULoop_borehole, resistance_ULoop_total_internal,
     resistance_ULoop_effective,
     resistance_coaxial, resistance_coaxial_effective
 
-# Utility exports
-export water_ρ, water_cp, water_k, water_μ, fluid_property
+# Fluid property exports
+export fluid_property
+# Deprecated, use fluid_property instead
+export water_ρ, water_cp, water_k, water_μ
 
 end

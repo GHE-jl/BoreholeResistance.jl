@@ -30,7 +30,7 @@ makedocs(;
             "Borehole (grout) resistance" => "theory/borehole.md",
             "Effective resistance" => "theory/effective.md",
         ],
-        "Water properties" => "properties.md",
+        "Fluid properties" => "properties.md",
         "API reference" => "api.md",
         "References" => "references.md",
     ],
