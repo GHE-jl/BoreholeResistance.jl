@@ -33,17 +33,17 @@ performance. This package provides the resistances; downstream packages use them
 
 ## Installation
 
-The package is not yet registered. Install it directly from the repository:
+The package is registered in the Julia General registry:
 
 ```julia
 using Pkg
-Pkg.add(url = "https://github.com/GHE-jl/BoreholeResistance.jl")
+Pkg.add("BoreholeResistance")
 ```
 
 or, in the Pkg REPL mode (press `]`):
 
 ```
-pkg> add https://github.com/GHE-jl/BoreholeResistance.jl
+pkg> add BoreholeResistance
 ```
 
 ## Quick start

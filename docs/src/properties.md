@@ -1,9 +1,9 @@
 # Fluid properties
 
-The resistance correlations need the thermophysical properties of the heat carrier fluid as a
+The resistance correlations need the thermal and physical properties of the heat carrier fluid as a
 function of temperature. [`fluid_property`](@ref) is the recommended entry point: given a
 temperature in degrees Celsius, a fluid symbol, and (for mixtures) a mass concentration, it
-returns all four properties at once via [CoolProp](https://coolprop.org/fluid_properties/Incompressibles.html):
+returns all four required properties at once via [CoolProp](https://coolprop.org/fluid_properties/Incompressibles.html):
 
 ```julia
 using BoreholeResistance
@@ -14,7 +14,7 @@ kf, cf, ρf, μf = fluid_property(T0, :water)   # k ≈ 0.578 W/m·K, cp ≈ 419
 
 The `fluid` symbol is `:water` for pure water, or one of `:MPG`, `:MEG`, `:MMA`, `:MEA`, `:MKA`,
 `:MKF` for an aqueous mixture (propylene glycol, ethylene glycol, methanol, ethanol, potassium
-acetate, or potassium formate respectively), with `percentage` giving the mass fraction of the
+acetate, or potassium formate, respectively), with `percentage` giving the mass fraction of the
 additive [%m]:
 
 ```julia

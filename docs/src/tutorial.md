@@ -61,12 +61,13 @@ Rf = resistance_fluid(V̇, ri, kf, cf, ρf, μf, ϵ) # fluid convection
 
 ## 5. Borehole resistance ``R_b`` and internal resistance ``R_a``
 
-The short form takes the pre-computed `Rp` and `Rf`. `order = 1` selects the first-order
-multipole (recommended); `order = 0` is the line-source approximation.
+The **short** form takes the pre-computed `Rp` and `Rf`. `order = 1` selects the first-order
+multipole (recommended); `order = 0` is the line-source approximation; and `nLoop = 1` is to specify
+only a single U-loop ground heat exchanger.
 
 ```julia
-Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; order = 1)
-Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf; order = 1)
+Rb = resistance_ULoop_borehole(s, rb, ro, ks, kg, Rp, Rf; nLoop = 1, order = 1)
+Ra = resistance_ULoop_total_internal(s, rb, ro, ks, kg, Rp, Rf; nLoop = 1, order = 1)
 ```
 
 Equivalently, the **long form** computes `Rf` and `Rp` internally from geometry and flow:
@@ -93,7 +94,7 @@ or, from geometry directly, the all-in-one form used in the [Quick start](@ref):
 Rbe = resistance_ULoop_effective(V, H, s, rb, ro, ri, ks, kg, kp, kf, cf, ρf, μf; nLoop = 1)
 ```
 
-`Rbe ≥ Rb` always — short-circuiting can only degrade performance.
+`Rbe ≥ Rb` always, short-circuiting can only degrade performance.
 
 ## 7. Double U-tube
 
