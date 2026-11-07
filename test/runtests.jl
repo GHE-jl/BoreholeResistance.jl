@@ -37,6 +37,9 @@ using BoreholeResistance
         @test Nusselt(1000.0, 7.0, r) == 4.0
         # Turbulent Nu must exceed the laminar value
         @test Nusselt(20000.0, 7.0, r) > 4.0
+        # Transition: continuous at Re = 4000, with the friction factor of Re = 4000
+        @test Nusselt(4000.0 - 1e-6, 7.0, r) ≈ Nusselt(4000.0, 7.0, r) rtol = 1e-6
+        @test Nusselt(2300.0, 7.0, r) ≈ 4.0
         # Two overloads must agree
         kf, cf, ρf, μf = water_k(20.0), water_cp(20.0), water_ρ(20.0), water_μ(20.0)
         V̇ = 1.0

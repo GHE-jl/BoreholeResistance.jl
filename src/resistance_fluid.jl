@@ -126,8 +126,8 @@ function Nusselt(Re::Real, Pr::Real, r::Real, ϵ::Real=5e-6)
         return 4.0                              # Eq. 2.42 of Lamarche 2023
     elseif Re >= 2300 && Re < 4000              # Transition between laminar and turbulent flow
         γ = (Re - 2300) / (4000 - 2300)         # Eq. 2.49 of Lamarche 2023
-        f = friction_factor_Colebrook_White(Re, r, ϵ)
-        # Gnielinski (Eq. 2.43b of Lamarche 2023)
+        f = friction_factor_Colebrook_White(4000, r, ϵ)
+        # Gnielinski at Re = 4000 (Eq. 2.43b of Lamarche 2023)
         Nu_4k = (f / 8) * (4000 - 1000) * Pr / (1 + (12.7 * (f / 8)^0.5 * (Pr^(2 / 3) - 1)))
         return (1 - γ) * 4 + γ * Nu_4k          # Eq. 2.48 of Lamarche 2023
     elseif Re >= 4000                           # Turbulent flow in a pipe
